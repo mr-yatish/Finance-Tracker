@@ -139,7 +139,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                     )}
                 />
 
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row">
                     <FormField
                         control={form.control}
                         name="amount"
@@ -304,6 +304,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                     <SelectItem value="salary">Salary</SelectItem>
                                     <SelectItem value="utilities">Utilities</SelectItem>
                                     <SelectItem value="entertainment">Entertainment</SelectItem>
+                                    <SelectItem value="shutta">Shutta</SelectItem>
                                     <SelectItem value="other">Other</SelectItem>
                                 </SelectContent>
                             </Select>

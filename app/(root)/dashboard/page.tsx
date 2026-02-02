@@ -9,6 +9,7 @@ import { SpendingChart } from "@/components/shared/SpendingChart";
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
 import { BankAccountsWidget } from "@/components/shared/BankAccountsWidget";
+import { AddTransactionFloatingButton } from "@/components/shared/AddTransactionFloatingButton";
 
 export default async function DashboardPage() {
     const user = await currentUser();
@@ -37,11 +38,11 @@ export default async function DashboardPage() {
 
     try {
         const stats = await getSummaryStats(user.id);
-        balance = stats.balance;
-        income = stats.income;
-        expense = stats.expense;
-        chartData = stats.chartData;
-        recentTransactions = stats.recentTransactions;
+        balance = stats?.balance;
+        income = stats?.income;
+        expense = stats?.expense;
+        chartData = stats?.chartData;
+        recentTransactions = stats?.recentTransactions;
     } catch (error) {
         console.error("Dashboard data fetch failed:", error);
         // Fallback to default values initialized above
@@ -155,6 +156,8 @@ export default async function DashboardPage() {
             <div className="w-full">
                 <BankAccountsWidget />
             </div>
+
+            <AddTransactionFloatingButton />
         </div>
     );
 }
