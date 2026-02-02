@@ -44,6 +44,9 @@ export const metadata: Metadata = {
     description: "Track your income and expenses with ease.",
     siteName: "Daily Budget",
   },
+  icons: {
+    icon: "/images/logo.png",
+  },
 };
 
 export default async function RootLayout({
@@ -54,14 +57,19 @@ export default async function RootLayout({
   const user = await currentUser();
 
   if (user) {
-    await createUser({
-      clerkId: user.id,
-      email: user.emailAddresses[0].emailAddress,
-      username: user.username || `user_${user.id.slice(0, 8)}`,
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
-      photo: user.imageUrl,
-    });
+    try {
+      await createUser({
+        clerkId: user.id,
+        email: user.emailAddresses[0].emailAddress,
+        username: user.username || `user_${user.id.slice(0, 8)}`,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        photo: user.imageUrl,
+      });
+    } catch (error) {
+      console.error("Error syncing user in RootLayout:", error);
+      // Don't block the UI if user sync fails, just log it.
+    }
   }
 
   return (

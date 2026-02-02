@@ -36,8 +36,8 @@ export default function Sidebar() {
         <aside className="hidden h-screen w-64 flex-col bg-background/50 backdrop-blur-xl border-r lg:flex">
             <div className="flex h-20 items-center px-8 border-b border-border/40">
                 <Link href="/dashboard" className="flex items-center pl-2 mb-4">
-                    <img src="/images/logo.png" alt="Daily Budget" className="h-12 w-auto mr-3" />
-                    <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-outfit)]">Daily Budget</span>
+                    <img src="/images/logo.png" alt="Daily Budget" className="h-16 w-auto mr-3" />
+                    <span className="text-2xl font-bold tracking-tight font-[family-name:var(--font-outfit)]">Daily Budget</span>
                 </Link>
             </div>
             <nav className="flex-1 space-y-1 p-4">

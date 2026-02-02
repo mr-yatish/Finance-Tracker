@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/shared/ModeToggle";
 import { Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 export default function LandingHeader() {
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -14,7 +14,7 @@ export default function LandingHeader() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-2 font-bold text-xl">
-                    <img src="/images/logo.png" alt="Daily Budget" className="h-12 w-auto" />
+                    <img src="/images/logo.png" alt="Daily Budget" className="h-16 w-auto" />
                     <span className="font-[family-name:var(--font-outfit)]">Daily Budget</span>
                 </div>
 
@@ -39,6 +39,7 @@ export default function LandingHeader() {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                            <SheetTitle className="hidden">Navigation Menu</SheetTitle>
                             <div className="flex flex-col gap-6 mt-8">
                                 <div className="flex items-center gap-2 font-bold text-xl justify-center">
                                     <img src="/images/logo.png" alt="Daily Budget" className="h-12 w-auto" />

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { Menu, BarChart3, ArrowRight, TrendingUp, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
 
@@ -22,6 +22,7 @@ export default function Header() {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col w-72 p-0">
+                            <SheetTitle className="hidden">Navigation Menu</SheetTitle>
                             <div className="flex h-20 items-center justify-center border-b px-6">
                                 <Link href="/" className="flex items-center gap-2 font-semibold" onClick={() => setSheetOpen(false)}>
                                     <img src="/images/logo.png" alt="Daily Budget" className="h-10 w-auto" />
@@ -65,7 +66,7 @@ export default function Header() {
                     </Sheet>
                 </div>
                 <Link href="/" className="flex lg:hidden items-center gap-2 font-semibold">
-                    <img src="/images/logo.png" alt="Daily Budget" className="h-10 w-auto" />
+                    <img src="/images/logo.png" alt="Daily Budget" className="h-12 w-auto" />
                     <span className="text-xl font-bold text-primary font-[family-name:var(--font-outfit)]">Daily Budget</span>
                 </Link>
             </div>
