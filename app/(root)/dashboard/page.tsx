@@ -24,7 +24,23 @@ export default async function DashboardPage() {
         photo: user.imageUrl
     });
 
-    const { balance, income, expense, chartData, recentTransactions } = await getSummaryStats(user.id);
+    let balance = 0;
+    let income = 0;
+    let expense = 0;
+    let chartData: any[] = [];
+    let recentTransactions: any[] = [];
+
+    try {
+        const stats = await getSummaryStats(user.id);
+        balance = stats.balance;
+        income = stats.income;
+        expense = stats.expense;
+        chartData = stats.chartData;
+        recentTransactions = stats.recentTransactions;
+    } catch (error) {
+        console.error("Dashboard data fetch failed:", error);
+        // Fallback to default values initialized above
+    }
 
     return (
         <div className="space-y-8">
@@ -98,7 +114,7 @@ export default async function DashboardPage() {
                 </Card>
 
                 {/* Top Performers / Recent - Mocked for visual matching */}
-                <Card className="col-span-full lg:col-span-2 rounded-3xl border-none shadow-sm bg-card">
+                <Card className="col-span-full lg:col-span-2 rounded-3xl border-none shadow-sm bg-card h-fit">
                     <CardHeader>
                         <CardTitle className="text-xl font-bold">Top Transactions</CardTitle>
                     </CardHeader>
@@ -131,10 +147,8 @@ export default async function DashboardPage() {
             </div>
 
             {/* Bank Accounts Section */}
-            <div className="grid gap-6 md:grid-cols-2">
-                <div className="col-span-2">
-                    <BankAccountsWidget />
-                </div>
+            <div className="w-full">
+                <BankAccountsWidget />
             </div>
         </div>
     );

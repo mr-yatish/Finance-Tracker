@@ -37,7 +37,7 @@ export function BankAccountsWidget() {
     }, [user]);
 
     return (
-        <Card className="h-full rounded-3xl border-none shadow-sm bg-card">
+        <Card className="h-fit rounded-3xl border-none shadow-sm bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">Bank Accounts</CardTitle>
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>

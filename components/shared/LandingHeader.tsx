@@ -14,8 +14,8 @@ export default function LandingHeader() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-2 font-bold text-xl">
-                    <img src="/images/logo.png" alt="Daily Budget" className="h-16 w-auto" />
-                    <span className="font-[family-name:var(--font-outfit)]">Daily Budget</span>
+                    <img src="/images/logo.png" alt="Daily Budget" className="h-20 w-auto" />
+                    <span className="text-lg font-bold font-[family-name:var(--font-outfit)]">Daily Budget</span>
                 </div>
 
                 {/* Desktop Navigation */}

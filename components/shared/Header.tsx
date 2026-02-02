@@ -66,8 +66,8 @@ export default function Header() {
                     </Sheet>
                 </div>
                 <Link href="/" className="flex lg:hidden items-center gap-2 font-semibold">
-                    <img src="/images/logo.png" alt="Daily Budget" className="h-12 w-auto" />
-                    <span className="text-xl font-bold text-primary font-[family-name:var(--font-outfit)]">Daily Budget</span>
+                    <img src="/images/logo.png" alt="Daily Budget" className="h-14 w-auto" />
+                    <span className="text-lg font-bold text-primary font-[family-name:var(--font-outfit)]">Daily Budget</span>
                 </Link>
             </div>
             <div className="flex items-center gap-2">
