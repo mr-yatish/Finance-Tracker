@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+
+if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+  console.warn("Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable");
+}
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
