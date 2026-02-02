@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, Wallet, Shield, CheckCircle, TrendingUp, DollarSign } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ModeToggle } from "@/components/shared/ModeToggle";
+
+import LandingHeader from "@/components/shared/LandingHeader";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -14,25 +15,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header/Nav */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2 font-bold text-xl">
-            <img src="/images/logo.png" alt="Daily Budget" className="h-12 w-auto" />
-            <span className="font-[family-name:var(--font-outfit)]">Daily Budget</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <ModeToggle />
-            <Button variant="ghost" asChild>
-              <Link href="/sign-in">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/sign-up">Get Started</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
+      <LandingHeader />
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-24 lg:py-32">
