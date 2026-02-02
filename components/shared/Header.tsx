@@ -1,43 +1,75 @@
 "use client";
 
+import { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
-import { Menu } from "lucide-react";
+import { Menu, BarChart3, ArrowRight, TrendingUp, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
 
 export default function Header() {
+    const [sheetOpen, setSheetOpen] = useState(false);
+
     return (
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 lg:justify-end">
-            <div className="lg:hidden">
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button variant="outline" size="icon">
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-64 p-0">
-                        <div className="flex h-14 items-center border-b px-4">
-                            <Link href="/" className="flex items-center gap-2 font-semibold">
-                                <span className="text-xl font-bold text-primary">FinanceTrack</span>
-                            </Link>
-                        </div>
-                        <nav className="flex flex-col space-y-2 p-4">
-                            <Button variant="ghost" className="justify-start gap-2" asChild>
-                                <Link href="/dashboard">Dashboard</Link>
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4">
+            <div className="flex items-center gap-2">
+                <div className="lg:hidden">
+                    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <Menu className="h-5 w-5" />
                             </Button>
-                            <Button variant="ghost" className="justify-start gap-2" asChild>
-                                <Link href="/transactions">Transactions</Link>
-                            </Button>
-                            <Button variant="ghost" className="justify-start gap-2" asChild>
-                                <Link href="/analytics">Analytics</Link>
-                            </Button>
-                        </nav>
-                    </SheetContent>
-                </Sheet>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="flex flex-col w-72 p-0">
+                            <div className="flex h-20 items-center justify-center border-b px-6">
+                                <Link href="/" className="flex items-center gap-2 font-semibold" onClick={() => setSheetOpen(false)}>
+                                    <img src="/images/logo.png" alt="Daily Budget" className="h-10 w-auto" />
+                                    <span className="text-xl font-bold text-primary font-[family-name:var(--font-outfit)]">Daily Budget</span>
+                                </Link>
+                            </div>
+                            <div className="flex-1 overflow-y-auto px-4 py-6">
+                                <nav className="flex flex-col space-y-4">
+                                    <Button variant="ghost" className="justify-start gap-3 h-12 text-base font-medium" asChild>
+                                        <Link href="/dashboard" onClick={() => setSheetOpen(false)}>
+                                            <span className="bg-primary/10 p-1 rounded-md"><BarChart3 className="h-4 w-4 text-primary" /></span>
+                                            Dashboard
+                                        </Link>
+                                    </Button>
+                                    <Button variant="ghost" className="justify-start gap-3 h-12 text-base font-medium" asChild>
+                                        <Link href="/transactions" onClick={() => setSheetOpen(false)}>
+                                            <span className="bg-primary/10 p-1 rounded-md"><ArrowRight className="h-4 w-4 text-primary" /></span>
+                                            Transactions
+                                        </Link>
+                                    </Button>
+                                    <Button variant="ghost" className="justify-start gap-3 h-12 text-base font-medium" asChild>
+                                        <Link href="/analytics" onClick={() => setSheetOpen(false)}>
+                                            <span className="bg-primary/10 p-1 rounded-md"><TrendingUp className="h-4 w-4 text-primary" /></span>
+                                            Analytics
+                                        </Link>
+                                    </Button>
+                                    <Button variant="ghost" className="justify-start gap-3 h-12 text-base font-medium" asChild>
+                                        <Link href="/ai-chat" onClick={() => setSheetOpen(false)}>
+                                            <span className="bg-primary/10 p-1 rounded-md"><BrainCircuit className="h-4 w-4 text-primary" /></span>
+                                            AI Chat
+                                        </Link>
+                                    </Button>
+                                </nav>
+                            </div>
+                            <div className="border-t p-6">
+                                <p className="text-xs text-center text-muted-foreground">
+                                    © {new Date().getFullYear()} Daily Budget
+                                </p>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+                </div>
+                <Link href="/" className="flex lg:hidden items-center gap-2 font-semibold">
+                    <img src="/images/logo.png" alt="Daily Budget" className="h-10 w-auto" />
+                    <span className="text-xl font-bold text-primary font-[family-name:var(--font-outfit)]">Daily Budget</span>
+                </Link>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
                 <ModeToggle />
                 <UserButton />
             </div>

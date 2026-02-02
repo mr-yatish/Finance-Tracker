@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, Wallet, Shield, CheckCircle, TrendingUp, DollarSign } from "lucide-react";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { ModeToggle } from "@/components/shared/ModeToggle";
 
 export default async function Home() {
   const { userId } = await auth();
@@ -17,12 +18,11 @@ export default async function Home() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2 font-bold text-xl">
-            <div className="rounded-full bg-primary p-1">
-              <Wallet className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span>Finance Tracker</span>
+            <img src="/images/logo.png" alt="Daily Budget" className="h-12 w-auto" />
+            <span className="font-[family-name:var(--font-outfit)]">Daily Budget</span>
           </div>
           <div className="flex items-center gap-4">
+            <ModeToggle />
             <Button variant="ghost" asChild>
               <Link href="/sign-in">Sign In</Link>
             </Button>
@@ -144,12 +144,12 @@ export default async function Home() {
       <footer className="border-t py-12">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Finance Tracker. All rights reserved.
+            © {new Date().getFullYear()} Daily Budget. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-foreground">Privacy Policy</Link>
-            <Link href="#" className="hover:text-foreground">Terms of Service</Link>
-            <Link href="#" className="hover:text-foreground">Contact</Link>
+            <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
+            <Link href="/contact" className="hover:text-foreground">Contact</Link>
           </div>
         </div>
       </footer>
