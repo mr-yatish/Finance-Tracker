@@ -15,14 +15,19 @@ export default async function DashboardPage() {
     if (!user) redirect("/sign-in");
 
     // Sync user to DB
-    await createUser({
-        clerkId: user.id,
-        email: user.emailAddresses[0].emailAddress,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        photo: user.imageUrl
-    });
+    // Sync user to DB
+    try {
+        await createUser({
+            clerkId: user?.id,
+            email: user?.emailAddresses[0]?.emailAddress,
+            username: user?.username,
+            firstName: user?.firstName,
+            lastName: user?.lastName,
+            photo: user?.imageUrl
+        });
+    } catch (error) {
+        console.error("User sync failed in dashboard:", error);
+    }
 
     let balance = 0;
     let income = 0;
