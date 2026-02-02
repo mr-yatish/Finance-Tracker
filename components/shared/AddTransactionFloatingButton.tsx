@@ -26,7 +26,7 @@ export function AddTransactionFloatingButton() {
                     <span className="sr-only">Add Transaction</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Add Transaction</DialogTitle>
                 </DialogHeader>

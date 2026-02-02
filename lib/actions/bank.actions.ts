@@ -23,7 +23,7 @@ export async function seedBanks() {
             { name: "IndusInd Bank", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=indusind.com&sz=128" },
             { name: "Yes Bank", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=yesbank.in&sz=128" },
             { name: "IDFC First Bank", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=idfcfirstbank.com&sz=128" },
-            { name: "Bank of India", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=bankofindia.co.in&sz=128" },
+            { name: "Bank of India", acceptsOnline: true, logo: "https://icons.duckduckgo.com/ip3/bankofindia.co.in.ico" },
             { name: "Central Bank of India", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=centralbankofindia.co.in&sz=128" },
             { name: "Indian Bank", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=indianbank.in&sz=128" },
             { name: "Indian Overseas Bank", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=iob.in&sz=128" },
@@ -95,6 +95,16 @@ export async function createBankAccount(accountData: {
         // Check if user exists (userId is clerkId)
         const user = await User.findOne({ clerkId: accountData.userId });
         if (!user) throw new Error("User not found");
+
+        const existingAccount = await BankAccount.findOne({
+            user: user._id,
+            bank: accountData.bankId,
+            last4Digits: accountData.last4Digits,
+        });
+
+        if (existingAccount) {
+            throw new Error("This bank account is already linked.");
+        }
 
         const newAccount = await BankAccount.create({
             user: user._id,

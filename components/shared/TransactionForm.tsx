@@ -200,7 +200,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex space-x-4"
+                                    className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4"
                                 >
                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                         <FormControl>
@@ -319,37 +319,14 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                             <FormLabel>Date</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                        >
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={(date) => date && field.onChange(date)}
-                                        disabled={(date) =>
-                                            date > new Date() || date < new Date("1900-01-01")
-                                        }
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
+                            <FormControl>
+                                <Input
+                                    type="date"
+                                    value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
+                                    onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : new Date())}
+                                    max={format(new Date(), "yyyy-MM-dd")}
+                                />
+                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}

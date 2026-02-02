@@ -7,9 +7,14 @@ export async function createUser(user: any) {
     try {
         await connectToDatabase();
 
+        const cleanUser = { ...user };
+        if (!cleanUser.username) {
+            cleanUser.username = cleanUser.email?.split('@')[0] || `user_${cleanUser.clerkId.slice(0, 8)}`;
+        }
+
         const newUser = await User.findOneAndUpdate(
             { clerkId: user.clerkId },
-            user,
+            cleanUser,
             { upsert: true, new: true }
         );
 

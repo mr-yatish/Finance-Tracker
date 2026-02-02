@@ -27,6 +27,11 @@ const sidebarLinks = [
         route: "/ai-chat",
         icon: BrainCircuit,
     },
+    {
+        label: "Settings",
+        route: "/user-profile",
+        icon: Settings,
+    },
 ];
 
 export default function Sidebar() {
@@ -34,8 +39,8 @@ export default function Sidebar() {
 
     return (
         <aside className="hidden h-screen w-64 flex-col bg-background/50 backdrop-blur-xl border-r lg:flex">
-            <div className="flex h-20 items-center px-8 border-b border-border/40">
-                <Link href="/dashboard" className="flex items-center pl-2 mb-4">
+            <div className="flex h-24 items-center px-6 border-b border-border/40">
+                <Link href="/dashboard" className="flex items-center">
                     <img src="/images/logo.png" alt="Daily Budget" className="h-20 w-auto mr-3" />
                     <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-outfit)]">Daily Budget</span>
                 </Link>
@@ -59,7 +64,7 @@ export default function Sidebar() {
                         </Link>
                     );
                 })}
-                <Link
+                {/* <Link
                     href="/user-profile"
                     className={cn(
                         "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200",
@@ -70,7 +75,7 @@ export default function Sidebar() {
                 >
                     <Settings className="h-5 w-5" />
                     Settings
-                </Link>
+                </Link> */}
             </nav>
             <div className="p-4 border-t border-border/40">
                 <div className="rounded-2xl bg-card p-4 shadow-sm border">
