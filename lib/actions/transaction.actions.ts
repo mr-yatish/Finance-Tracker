@@ -102,7 +102,15 @@ export async function getTransactions(clerkId: string) {
         if (!user) return [];
         await migrateTransactions(user._id);
 
-        const transactions = await Transaction.find({ user: user._id }).sort({ date: -1 });
+        const transactions = await Transaction.find({ user: user._id })
+            .sort({ date: -1 })
+            .populate({
+                path: 'bankAccount',
+                populate: {
+                    path: 'bank',
+                    model: 'Bank'
+                }
+            });
         console.log("SERVER ACTION: getTransactions sample", transactions[0]);
         return JSON.parse(JSON.stringify(transactions));
     } catch (error) {
@@ -210,7 +218,49 @@ export async function getAnalyticsData(clerkId: string) {
             }
         });
 
-        return { categoryStats, monthlyStats };
+        // Payment Method Stats
+        const paymentMap = new Map();
+        transactions.forEach((t: any) => {
+            if (t.type === 'expense') {
+                const method = t.paymentMethod || 'online'; // default to online for old recs if any
+                if (paymentMap.has(method)) {
+                    paymentMap.set(method, paymentMap.get(method) + t.amount);
+                } else {
+                    paymentMap.set(method, t.amount);
+                }
+            }
+        });
+        const paymentMethodStats = Array.from(paymentMap, ([name, value]) => ({ name, value }));
+
+        // Bank Account Stats (for Online Expenses)
+        const bankMap = new Map();
+        transactions.forEach((t: any) => {
+            if (t.type === 'expense' && (t.paymentMethod === 'online' || !t.paymentMethod)) {
+                // If populated, bankAccount is an object. If not, check how it is returned. 
+                // We need to fetch it with population in analytics too if we want names.
+            }
+        });
+
+        // Re-fetch for detailed analytics population
+        const detailedTransactions = await Transaction.find({ user: user._id, type: 'expense' }).populate({
+            path: 'bankAccount',
+            populate: { path: 'bank' }
+        });
+
+        detailedTransactions.forEach((t: any) => {
+            if (t.paymentMethod === 'online' || !t.paymentMethod) {
+                const bankName = t.bankAccount?.bank?.name || 'Unknown Bank';
+                if (bankMap.has(bankName)) {
+                    bankMap.set(bankName, bankMap.get(bankName) + t.amount);
+                } else {
+                    bankMap.set(bankName, t.amount);
+                }
+            }
+        });
+
+        const bankStats = Array.from(bankMap, ([name, value]) => ({ name, value }));
+
+        return { categoryStats, monthlyStats, paymentMethodStats, bankStats };
     } catch (error) {
         console.error(error);
         throw new Error("Failed to fetch analytics data");

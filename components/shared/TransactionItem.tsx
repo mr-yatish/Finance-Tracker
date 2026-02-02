@@ -44,7 +44,16 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
         <div className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 group">
             <div className="flex flex-col">
                 <span className="font-medium">{transaction.description || transaction.category}</span>
-                <span className="text-xs text-muted-foreground">{format(new Date(transaction.date), "PPP")}</span>
+                <span className="text-xs text-muted-foreground">
+                    {format(new Date(transaction.date), "PPP")}
+                    {transaction.type === 'expense' && (
+                        <span className="ml-2">
+                            • {transaction.paymentMethod === 'cash' ? 'Cash' : (
+                                transaction.bankAccount?.bank?.name ? `${transaction.bankAccount.bank.name} (*${transaction.bankAccount.last4Digits})` : 'Online'
+                            )}
+                        </span>
+                    )}
+                </span>
             </div>
             <div className="flex items-center gap-4">
                 <div className={`font-bold ${transaction.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -84,7 +93,9 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
                             amount: transaction.amount || 0,
                             category: transaction.category || "other",
                             type: transaction.type || "expense",
-                            date: new Date(transaction.date || Date.now())
+                            date: new Date(transaction.date || Date.now()),
+                            paymentMethod: transaction.paymentMethod || "online",
+                            bankAccount: transaction.bankAccount?._id || "",
                         }}
                     />
                 </DialogContent>

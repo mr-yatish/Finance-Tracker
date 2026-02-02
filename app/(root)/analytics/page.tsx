@@ -7,7 +7,7 @@ export default async function AnalyticsPage() {
     const user = await currentUser();
     if (!user) return null;
 
-    const { categoryStats, monthlyStats } = await getAnalyticsData(user.id);
+    const { categoryStats, monthlyStats, paymentMethodStats, bankStats } = await getAnalyticsData(user.id);
 
     return (
         <div className="space-y-8">
@@ -19,7 +19,7 @@ export default async function AnalyticsPage() {
                         <CardTitle>Spending by Category</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <AnalyticsCharts type="pie" data={categoryStats} />
+                        <AnalyticsCharts type="pie" data={categoryStats || []} />
                     </CardContent>
                 </Card>
 
@@ -28,7 +28,27 @@ export default async function AnalyticsPage() {
                         <CardTitle>Monthly Trends</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <AnalyticsCharts type="bar" data={monthlyStats} />
+                        <AnalyticsCharts type="bar" data={monthlyStats || []} />
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card className="rounded-3xl border-none shadow-sm bg-card">
+                    <CardHeader>
+                        <CardTitle>Payment Methods</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <AnalyticsCharts type="pie" data={paymentMethodStats || []} />
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-3xl border-none shadow-sm bg-card">
+                    <CardHeader>
+                        <CardTitle>Bank Account Spending (Online)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <AnalyticsCharts type="pie" data={bankStats || []} />
                     </CardContent>
                 </Card>
             </div>

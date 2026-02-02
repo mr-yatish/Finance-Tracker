@@ -6,6 +6,8 @@ export const transactionSchema = z.object({
     category: z.string().min(1, "Category is required"),
     type: z.enum(["income", "expense"]),
     date: z.date(),
+    paymentMethod: z.enum(["online", "cash"]).default("online"),
+    bankAccount: z.string().optional(),
 });
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>;

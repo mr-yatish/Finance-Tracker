@@ -8,6 +8,8 @@ const TransactionSchema = new Schema({
     category: { type: String, required: true },
     description: { type: String },
     date: { type: Date, default: Date.now },
+    paymentMethod: { type: String, enum: ['online', 'cash'], default: 'online' },
+    bankAccount: { type: Schema.Types.ObjectId, ref: "BankAccount" },
 }, { timestamps: true });
 
 // Force recompilation in dev to pick up schema changes

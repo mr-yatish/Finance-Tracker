@@ -8,6 +8,7 @@ import { getSummaryStats } from "@/lib/actions/transaction.actions";
 import { SpendingChart } from "@/components/shared/SpendingChart";
 import { format } from "date-fns";
 import { redirect } from "next/navigation";
+import { BankAccountsWidget } from "@/components/shared/BankAccountsWidget";
 
 export default async function DashboardPage() {
     const user = await currentUser();
@@ -129,41 +130,11 @@ export default async function DashboardPage() {
                 </Card>
             </div>
 
-            {/* Channels / Accounts - Visual Polish */}
-            <div className="grid gap-6 md:grid-cols-4">
-                <Card className="rounded-3xl border-none shadow-sm bg-linear-to-br from-primary/80 to-primary p-6 text-primary-foreground">
-                    <div className="space-y-2">
-                        <p className="text-sm font-medium opacity-80">Total Savings</p>
-                        <p className="text-2xl font-bold">₹12,450</p>
-                        <Badge variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-none mt-2">+2.5%</Badge>
-                    </div>
-                </Card>
-                <Card className="rounded-3xl border-none shadow-sm bg-card p-6 flex flex-col justify-between">
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Cash Flow</p>
-                        <p className="text-xl font-bold">₹4,200</p>
-                    </div>
-                    <div className="h-2 w-full bg-secondary rounded-full mt-4 overflow-hidden">
-                        <div className="h-full bg-emerald-500 w-[70%]" />
-                    </div>
-                </Card>
-                <Card className="rounded-3xl border-none shadow-sm bg-card p-6 flex flex-col justify-between">
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Investment</p>
-                        <p className="text-xl font-bold">₹5,800</p>
-                    </div>
-                    <div className="h-2 w-full bg-secondary rounded-full mt-4 overflow-hidden">
-                        <div className="h-full bg-blue-500 w-[40%]" />
-                    </div>
-                </Card>
-                <Card className="rounded-3xl border-none shadow-sm bg-secondary/50 p-6 flex items-center justify-center cursor-pointer hover:bg-secondary transition-colors">
-                    <div className="text-center space-y-2">
-                        <div className="mx-auto h-10 w-10 rounded-full bg-background flex items-center justify-center border shadow-sm">
-                            <DollarSign className="h-5 w-5" />
-                        </div>
-                        <p className="text-sm font-medium">Add Account</p>
-                    </div>
-                </Card>
+            {/* Bank Accounts Section */}
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="col-span-2">
+                    <BankAccountsWidget />
+                </div>
             </div>
         </div>
     );

@@ -37,10 +37,18 @@ interface TransactionFormProps {
     transactionId?: string;
 }
 
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { getUserBankAccounts } from "@/lib/actions/bank.actions"
+import { AddBankAccountForm } from "./AddBankAccountForm"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Plus } from "lucide-react"
+
 export function TransactionForm({ onSuccess, defaultValues, transactionId }: TransactionFormProps) {
     const { user } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+    const [isAddBankOpen, setIsAddBankOpen] = useState(false);
 
     const form = useForm<TransactionFormValues>({
         resolver: zodResolver(transactionSchema) as any,
@@ -50,14 +58,42 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
             category: "",
             type: "expense",
             date: new Date(),
+            paymentMethod: "online",
+            bankAccount: "",
         },
     })
 
+    const paymentMethod = form.watch("paymentMethod");
+
     useEffect(() => {
         if (defaultValues) {
-            form.reset(defaultValues);
+            // Ensure paymentMethod is set, default to online if missing (migration)
+            const values = {
+                ...defaultValues,
+                paymentMethod: defaultValues.paymentMethod || "online"
+            }
+            form.reset(values);
         }
     }, [defaultValues, form, transactionId]);
+
+    const fetchBankAccounts = async () => {
+        if (user) {
+            try {
+                const accounts = await getUserBankAccounts(user.id);
+                setBankAccounts(accounts);
+                // Auto-select first account if none selected and accounts exist
+                if (accounts.length > 0 && !form.getValues("bankAccount")) {
+                    form.setValue("bankAccount", accounts[0]._id);
+                }
+            } catch (error) {
+                console.error("Failed to fetch bank accounts", error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchBankAccounts();
+    }, [user]);
 
     async function onSubmit(data: TransactionFormValues) {
         if (!user) return;
@@ -68,7 +104,15 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
             } else {
                 await createTransaction(data, user.id);
             }
-            form.reset();
+            form.reset({
+                amount: 0,
+                description: "",
+                category: "",
+                type: "expense",
+                date: new Date(),
+                paymentMethod: "online",
+                bankAccount: "",
+            });
             onSuccess?.();
             router.refresh();
         } catch (error) {
@@ -94,6 +138,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                         </FormItem>
                     )}
                 />
+
                 <div className="flex gap-4">
                     <FormField
                         control={form.control}
@@ -144,6 +189,101 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                         )}
                     />
                 </div>
+
+                <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                        <FormItem className="space-y-1">
+                            <FormLabel>Payment Method</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex space-x-4"
+                                >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="online" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            Online
+                                        </FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="cash" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            Cash
+                                        </FormLabel>
+                                    </FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {paymentMethod === "online" && (
+                    <div className="space-y-2">
+                        <FormField
+                            control={form.control}
+                            name="bankAccount"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bank Account</FormLabel>
+                                    {bankAccounts.length > 0 ? (
+                                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Bank Account" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {bankAccounts.map((account) => (
+                                                    <SelectItem key={account._id} value={account._id}>
+                                                        <div className="flex items-center gap-2">
+                                                            {account.bank.logo && (
+                                                                <img
+                                                                    src={account.bank.logo}
+                                                                    alt={account.bank.name}
+                                                                    className="h-4 w-4 object-contain"
+                                                                />
+                                                            )}
+                                                            <span>{account.bank.name} - {account.last4Digits}</span>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <div className="flex flex-col gap-2">
+                                            <p className="text-sm text-yellow-600 font-medium">No bank accounts linked.</p>
+                                        </div>
+                                    )}
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Dialog open={isAddBankOpen} onOpenChange={setIsAddBankOpen}>
+                            <DialogTrigger asChild>
+                                <Button type="button" variant="outline" size="sm" className="w-full">
+                                    <Plus className="mr-2 h-4 w-4" /> Add Bank Account
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add Bank Account</DialogTitle>
+                                </DialogHeader>
+                                <AddBankAccountForm onSuccess={() => {
+                                    setIsAddBankOpen(false);
+                                    fetchBankAccounts();
+                                }} />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )}
 
                 <FormField
                     control={form.control}
