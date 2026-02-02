@@ -304,7 +304,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                     <SelectItem value="salary">Salary</SelectItem>
                                     <SelectItem value="utilities">Utilities</SelectItem>
                                     <SelectItem value="entertainment">Entertainment</SelectItem>
-                                    <SelectItem value="shutta">Shutta</SelectItem>
+                                    <SelectItem value="sutta">Sutta</SelectItem>
                                     <SelectItem value="other">Other</SelectItem>
                                 </SelectContent>
                             </Select>
