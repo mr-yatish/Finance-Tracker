@@ -48,19 +48,22 @@ export async function seedBanks() {
         // upsert handles it.
 
         console.log("Starting bank seed...");
-        for (const bank of banks) {
-            await Bank.updateOne(
+        console.log("Starting bank seed...");
+
+        // Use Promise.all for parallel execution to speed up seeding and prevent potential timeouts
+        await Promise.all(banks.map(bank =>
+            Bank.updateOne(
                 { name: bank.name },
                 { $set: { logo: bank.logo, acceptsOnline: bank.acceptsOnline } },
                 { upsert: true }
-            );
-        }
+            )
+        ));
 
         console.log("Banks seeded successfully");
         return JSON.parse(JSON.stringify({ message: "Banks seeded with GOOGLE LOGOS" }));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error seeding banks:", error);
-        throw new Error("Failed to seed banks");
+        throw new Error(`Failed to seed banks: ${error.message}`);
     }
 }
 
@@ -69,8 +72,11 @@ export async function getBanks() {
         await connectToDatabase();
         let banks = await Bank.find().sort({ name: 1 });
 
-        if (banks.length === 0) {
-            console.log("No banks found, seeding...");
+        // Check for old/broken logos (using Bank of India as marker) to trigger re-seed
+        const needsUpdate = await Bank.findOne({ name: "Bank of India", logo: { $regex: "duckduckgo" } });
+
+        if (banks.length === 0 || needsUpdate) {
+            console.log("Seeding/Updating banks due to missing data or old logos...");
             await seedBanks();
             banks = await Bank.find().sort({ name: 1 });
         }
@@ -116,9 +122,9 @@ export async function createBankAccount(accountData: {
 
         revalidatePath("/dashboard");
         return JSON.parse(JSON.stringify(newAccount));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating bank account:", error);
-        throw new Error("Failed to create bank account");
+        throw new Error(error.message || "Failed to create bank account");
     }
 }
 
@@ -128,12 +134,15 @@ export async function getUserBankAccounts(userId: string) {
 
         // Check if user exists (userId is clerkId)
         const user = await User.findOne({ clerkId: userId });
-        if (!user) throw new Error("User not found");
+        if (!user) {
+            console.error(`User not found for ID: ${userId}`);
+            throw new Error("User not found");
+        }
 
         const accounts = await BankAccount.find({ user: user._id }).populate('bank');
         return JSON.parse(JSON.stringify(accounts));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error fetching user bank accounts:", error);
-        throw new Error("Failed to fetch user bank accounts");
+        throw new Error(error.message || "Failed to fetch user bank accounts");
     }
 }

@@ -124,51 +124,73 @@ export async function getSummaryStats(clerkId: string) {
         await connectToDatabase();
         const user = await User.findOne({ clerkId });
         if (!user) return { balance: 0, income: 0, expense: 0, chartData: [], recentTransactions: [] };
-        await migrateTransactions(user._id);
 
-        const transactions = await Transaction.find({ user: user._id }).sort({ date: -1 });
+        // Use aggregation to calculate totals efficiently without fetching all docs
+        const totals = await Transaction.aggregate([
+            { $match: { user: user._id } },
+            {
+                $group: {
+                    _id: null,
+                    income: { $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] } },
+                    expense: { $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] } }
+                }
+            }
+        ]);
 
-        let income = 0;
-        let expense = 0;
-
-        transactions.forEach((t: any) => {
-            if (t.type === 'income') income += t.amount;
-            else expense += t.amount;
-        });
-
+        const income = totals[0]?.income || 0;
+        const expense = totals[0]?.expense || 0;
         const balance = income - expense;
 
-        // Chart Data (Last 6 months expenses)
-        const last6Months = new Map();
+        // Recent transactions (Fetch only 5)
+        const recentTransactions = await Transaction.find({ user: user._id })
+            .sort({ date: -1 })
+            .limit(5);
+
+        // Chart Data (Last 6 months expenses) - Efficient Aggregation
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1); // Start of month
+
+        const monthlyData = await Transaction.aggregate([
+            {
+                $match: {
+                    user: user._id,
+                    type: 'expense',
+                    date: { $gte: sixMonthsAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$date" }, // Group by month number (1-12)
+                    total: { $sum: "$amount" }
+                }
+            }
+        ]);
+
+        // Map aggregation result to simplified chart data format ensuring correct order
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const chartDataArray = [];
+
         for (let i = 5; i >= 0; i--) {
             const d = new Date();
             d.setMonth(d.getMonth() - i);
-            const key = d.toLocaleString('default', { month: 'short' });
-            last6Months.set(key, 0);
+            const monthIndex = d.getMonth(); // 0-11
+            const monthName = monthNames[monthIndex];
+
+            // Find data for this month (MongoDB $month returns 1-12)
+            const stats = monthlyData.find(m => m._id === monthIndex + 1);
+            chartDataArray.push({
+                name: monthName,
+                total: stats?.total || 0
+            });
         }
-
-        transactions.forEach((t: any) => {
-            const d = new Date(t.date);
-            // Simple check if within last 6 months approx (ignoring year wrap edge cases for simplicity in snippet, but map should handle generic string keys)
-            // For rigorous check:
-            const now = new Date();
-            const sixMonthsAgo = new Date(); sixMonthsAgo.setMonth(now.getMonth() - 6);
-            if (d > sixMonthsAgo && t.type === 'expense') {
-                const key = d.toLocaleString('default', { month: 'short' });
-                if (last6Months.has(key)) {
-                    last6Months.set(key, last6Months.get(key) + t.amount);
-                }
-            }
-        });
-
-        const chartDataArray = Array.from(last6Months, ([name, total]) => ({ name, total }));
 
         return {
             balance,
             income,
             expense,
             chartData: chartDataArray,
-            recentTransactions: JSON.parse(JSON.stringify(transactions.slice(0, 5)))
+            recentTransactions: JSON.parse(JSON.stringify(recentTransactions))
         };
 
     } catch (error: any) {
@@ -182,87 +204,96 @@ export async function getAnalyticsData(clerkId: string) {
         await connectToDatabase();
         const user = await User.findOne({ clerkId });
         if (!user) return { categoryStats: [], monthlyStats: [] };
-        await migrateTransactions(user._id);
 
-        const transactions = await Transaction.find({ user: user._id }).sort({ date: -1 });
+        const userId = user._id;
 
-        // Category Stats
-        const categoryMap = new Map();
-        transactions.forEach((t: any) => {
-            if (t.type === 'expense') {
-                if (categoryMap.has(t.category)) {
-                    categoryMap.set(t.category, categoryMap.get(t.category) + t.amount);
-                } else {
-                    categoryMap.set(t.category, t.amount);
+        // Category Stats (Expenses only)
+        const categoryStats = await Transaction.aggregate([
+            { $match: { user: userId, type: 'expense' } },
+            { $group: { _id: "$category", value: { $sum: "$amount" } } },
+            { $project: { name: "$_id", value: 1, _id: 0 } },
+            { $sort: { value: -1 } }
+        ]);
+
+        // Monthly Stats (Last 12 months)
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+        twelveMonthsAgo.setDate(1);
+
+        const monthlyRaw = await Transaction.aggregate([
+            { $match: { user: userId, date: { $gte: twelveMonthsAgo } } },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$date" },
+                        type: "$type"
+                    },
+                    total: { $sum: "$amount" }
                 }
             }
-        });
+        ]);
 
-        const categoryStats = Array.from(categoryMap, ([name, value]) => ({ name, value }));
-
-        // Monthly Stats (Last 12 months) - Simplified logic
-        const monthlyStats: { name: string; income: number; expense: number }[] = [];
+        // Process Monthly Data
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthlyStats = [];
 
         for (let i = 0; i < 12; i++) {
-            monthlyStats.push({ name: monthNames[i], income: 0, expense: 0 });
+            const d = new Date(); // Start from current month? Or Jan-Dec?
+            // Usually "Last 12 months" means previous 11 + current.
+            // But prompt implied "Jan" to "Dec" static list loop in previous code, which is weird if not year aligned.
+            // Let's stick to "Last 12 months" rolling window for analytics or just display current year?
+            // The previous code did `const monthNames = [...]; for (let i=0; i<12; i++)`. This implies Jan-Dec fixed.
+            // Let's assume Jan-Dec for simplification or do rolling if preferred.
+            // The previous logic pushed `monthNames[i]` which is Jan..Dec. So it was a fixed year view (or assumed data is from this year).
+            // Better to show Jan..Dec order.
+
+            const monthName = monthNames[i];
+            const incomeData = monthlyRaw.find(m => m._id.month === (i + 1) && m._id.type === 'income');
+            const expenseData = monthlyRaw.find(m => m._id.month === (i + 1) && m._id.type === 'expense');
+
+            monthlyStats.push({
+                name: monthName,
+                income: incomeData?.total || 0,
+                expense: expenseData?.total || 0
+            });
         }
 
-        transactions.forEach((t: any) => {
-            const date = new Date(t.date);
-            const monthIndex = date.getMonth();
-            const type = t.type;
-            if (monthlyStats[monthIndex]) {
-                if (type === 'income') monthlyStats[monthIndex].income += t.amount;
-                else monthlyStats[monthIndex].expense += t.amount;
-            }
-        });
-
         // Payment Method Stats
-        const paymentMap = new Map();
-        transactions.forEach((t: any) => {
-            if (t.type === 'expense') {
-                const method = t.paymentMethod || 'online'; // default to online for old recs if any
-                if (paymentMap.has(method)) {
-                    paymentMap.set(method, paymentMap.get(method) + t.amount);
-                } else {
-                    paymentMap.set(method, t.amount);
+        const paymentMethodStats = await Transaction.aggregate([
+            { $match: { user: userId, type: 'expense' } },
+            { $group: { _id: "$paymentMethod", value: { $sum: "$amount" } } },
+            { $project: { name: { $ifNull: ["$_id", "online"] }, value: 1, _id: 0 } } // Default to online if null
+        ]);
+
+        // Bank Account Stats (Online Expenses)
+        const bankStats = await Transaction.aggregate([
+            { $match: { user: userId, type: 'expense', paymentMethod: 'online' } },
+            {
+                $lookup: {
+                    from: "bankaccounts",
+                    localField: "bankAccount",
+                    foreignField: "_id",
+                    as: "account"
                 }
-            }
-        });
-        const paymentMethodStats = Array.from(paymentMap, ([name, value]) => ({ name, value }));
-
-        // Bank Account Stats (for Online Expenses)
-        const bankMap = new Map();
-        transactions.forEach((t: any) => {
-            if (t.type === 'expense' && (t.paymentMethod === 'online' || !t.paymentMethod)) {
-                // If populated, bankAccount is an object. If not, check how it is returned. 
-                // We need to fetch it with population in analytics too if we want names.
-            }
-        });
-
-        // Re-fetch for detailed analytics population
-        const detailedTransactions = await Transaction.find({ user: user._id, type: 'expense' }).populate({
-            path: 'bankAccount',
-            populate: { path: 'bank' }
-        });
-
-        detailedTransactions.forEach((t: any) => {
-            if (t.paymentMethod === 'online' || !t.paymentMethod) {
-                const bankName = t.bankAccount?.bank?.name || 'Unknown Bank';
-                if (bankMap.has(bankName)) {
-                    bankMap.set(bankName, bankMap.get(bankName) + t.amount);
-                } else {
-                    bankMap.set(bankName, t.amount);
+            },
+            { $unwind: { path: "$account", preserveNullAndEmptyArrays: false } },
+            {
+                $lookup: {
+                    from: "banks",
+                    localField: "account.bank",
+                    foreignField: "_id",
+                    as: "bankInfo"
                 }
-            }
-        });
-
-        const bankStats = Array.from(bankMap, ([name, value]) => ({ name, value }));
+            },
+            { $unwind: { path: "$bankInfo", preserveNullAndEmptyArrays: false } },
+            { $group: { _id: "$bankInfo.name", value: { $sum: "$amount" } } },
+            { $project: { name: "$_id", value: 1, _id: 0 } },
+            { $sort: { value: -1 } }
+        ]);
 
         return { categoryStats, monthlyStats, paymentMethodStats, bankStats };
-    } catch (error) {
-        console.error(error);
-        throw new Error("Failed to fetch analytics data");
+    } catch (error: any) {
+        console.error("Error in getAnalyticsData:", error);
+        throw new Error(`Failed to fetch analytics data: ${error.message}`);
     }
 }

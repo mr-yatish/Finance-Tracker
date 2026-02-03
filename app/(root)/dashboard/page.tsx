@@ -3,7 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
-import { createUser } from "@/lib/actions/user.actions";
+// import { createUser } from "@/lib/actions/user.actions";
 import { getSummaryStats } from "@/lib/actions/transaction.actions";
 import { SpendingChart } from "@/components/shared/SpendingChart";
 import { format } from "date-fns";
@@ -15,20 +15,8 @@ export default async function DashboardPage() {
     const user = await currentUser();
     if (!user) redirect("/sign-in");
 
-    // Sync user to DB
-    // Sync user to DB
-    try {
-        await createUser({
-            clerkId: user?.id,
-            email: user?.emailAddresses[0]?.emailAddress,
-            username: user?.username,
-            firstName: user?.firstName,
-            lastName: user?.lastName,
-            photo: user?.imageUrl
-        });
-    } catch (error) {
-        console.error("User sync failed in dashboard:", error);
-    }
+    // User is synced in RootLayout, so we don't need to do it here again.
+    // This reduces DB load and latency on the dashboard.
 
     let balance = 0;
     let income = 0;
