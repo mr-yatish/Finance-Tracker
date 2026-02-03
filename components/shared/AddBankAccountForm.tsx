@@ -32,6 +32,14 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
+import { useMediaQuery } from "@/lib/hooks/use-media-query"
 
 const bankAccountSchema = z.object({
     bankId: z.string().min(1, "Please select a bank"),
@@ -51,6 +59,7 @@ export function AddBankAccountForm({ onSuccess }: AddBankAccountFormProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [banks, setBanks] = useState<{ _id: string; name: string; logo?: string }[]>([]);
     const [open, setOpen] = useState(false)
+    const isDesktop = useMediaQuery("(min-width: 768px)")
 
     useEffect(() => {
         async function fetchBanks() {
@@ -96,6 +105,41 @@ export function AddBankAccountForm({ onSuccess }: AddBankAccountFormProps) {
         }
     }
 
+    const BankList = (
+        <Command>
+            <CommandInput placeholder="Search bank..." />
+            <CommandList>
+                <CommandEmpty>No bank found.</CommandEmpty>
+                <CommandGroup>
+                    {banks.map((bank) => (
+                        <CommandItem
+                            value={bank.name}
+                            key={bank._id}
+                            onSelect={() => {
+                                form.setValue("bankId", bank._id)
+                                setOpen(false)
+                            }}
+                            className="cursor-pointer"
+                        >
+                            <Check
+                                className={cn(
+                                    "mr-2 h-4 w-4",
+                                    bank._id === form.getValues("bankId")
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                )}
+                            />
+                            <div className="flex items-center gap-2 pointer-events-none">
+                                {bank.logo && <img src={bank.logo} alt={bank.name} className="h-4 w-4 object-contain" />}
+                                {bank.name}
+                            </div>
+                        </CommandItem>
+                    ))}
+                </CommandGroup>
+            </CommandList>
+        </Command>
+    )
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -105,68 +149,74 @@ export function AddBankAccountForm({ onSuccess }: AddBankAccountFormProps) {
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                             <FormLabel>Bank Name</FormLabel>
-                            <Popover open={open} onOpenChange={setOpen}>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            aria-expanded={open}
-                                            className={cn(
-                                                "w-full justify-between",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                        >
-                                            {field.value
-                                                ? (() => {
-                                                    const bank = banks.find((b) => b._id === field.value);
-                                                    return bank ? (
-                                                        <div className="flex items-center gap-2">
-                                                            {bank.logo && <img src={bank.logo} alt={bank.name} className="h-4 w-4 object-contain" />}
-                                                            {bank.name}
-                                                        </div>
-                                                    ) : "Select bank"
-                                                })()
-                                                : "Select bank"}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[300px] p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Search bank..." />
-                                        <CommandList>
-                                            <CommandEmpty>No bank found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {banks.map((bank) => (
-                                                    <CommandItem
-                                                        value={bank.name}
-                                                        key={bank._id}
-                                                        onSelect={() => {
-                                                            form.setValue("bankId", bank._id)
-                                                            setOpen(false)
-                                                        }}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                "mr-2 h-4 w-4",
-                                                                bank._id === field.value
-                                                                    ? "opacity-100"
-                                                                    : "opacity-0"
-                                                            )}
-                                                        />
-                                                        <div className="flex items-center gap-2 pointer-events-none">
-                                                            {bank.logo && <img src={bank.logo} alt={bank.name} className="h-4 w-4 object-contain" />}
-                                                            {bank.name}
-                                                        </div>
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
+                            {isDesktop ? (
+                                <Popover open={open} onOpenChange={setOpen}>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={open}
+                                                className={cn(
+                                                    "w-full justify-between",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {field.value
+                                                    ? (() => {
+                                                        const bank = banks.find((b) => b._id === field.value);
+                                                        return bank ? (
+                                                            <div className="flex items-center gap-2">
+                                                                {bank.logo && <img src={bank.logo} alt={bank.name} className="h-4 w-4 object-contain" />}
+                                                                {bank.name}
+                                                            </div>
+                                                        ) : "Select bank"
+                                                    })()
+                                                    : "Select bank"}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[300px] p-0" align="start">
+                                        {BankList}
+                                    </PopoverContent>
+                                </Popover>
+                            ) : (
+                                <Sheet open={open} onOpenChange={setOpen}>
+                                    <SheetTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={open}
+                                                className={cn(
+                                                    "w-full justify-between",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {field.value
+                                                    ? (() => {
+                                                        const bank = banks.find((b) => b._id === field.value);
+                                                        return bank ? (
+                                                            <div className="flex items-center gap-2">
+                                                                {bank.logo && <img src={bank.logo} alt={bank.name} className="h-4 w-4 object-contain" />}
+                                                                {bank.name}
+                                                            </div>
+                                                        ) : "Select bank"
+                                                    })()
+                                                    : "Select bank"}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </SheetTrigger>
+                                    <SheetContent side="bottom" className="p-0">
+                                        <SheetHeader className="p-4 border-b">
+                                            <SheetTitle>Select Bank</SheetTitle>
+                                        </SheetHeader>
+                                        {BankList}
+                                    </SheetContent>
+                                </Sheet>
+                            )}
                             <FormMessage />
                         </FormItem>
                     )}
