@@ -15,6 +15,8 @@ export async function createUser(user: any) {
         await connectToDatabase();
 
         const cleanUser = { ...user };
+
+        // Initial username generation
         if (!cleanUser.username) {
             cleanUser.username = cleanUser.email?.split('@')[0] || `user_${cleanUser.clerkId.slice(0, 8)}`;
         }
@@ -25,11 +27,43 @@ export async function createUser(user: any) {
             details: { clerkId: user.clerkId }
         });
 
-        const newUser = await User.findOneAndUpdate(
-            { clerkId: user.clerkId },
-            cleanUser,
-            { upsert: true, new: true }
-        );
+        // Try to create/update user, with retry mechanism for username collisions
+        let newUser;
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        while (attempts < maxAttempts) {
+            try {
+                newUser = await User.findOneAndUpdate(
+                    { clerkId: user.clerkId },
+                    cleanUser,
+                    { upsert: true, new: true }
+                );
+                // If successful, break the loop
+                break;
+            } catch (error: any) {
+                // If error is due to duplicate username, modify username and retry
+                if (error.code === 11000 && error.keyPattern?.username) {
+                    attempts++;
+                    const randomSuffix = Math.floor(Math.random() * 1000);
+                    cleanUser.username = `${cleanUser.username}_${randomSuffix}`;
+
+                    await logEvent({
+                        action: "createUser",
+                        level: LogLevel.WARN,
+                        message: `Username collision detected. Retrying with new username: ${cleanUser.username}`,
+                        details: { attempt: attempts }
+                    });
+                } else {
+                    // If it's another error (like duplicate email), throw it to be handled by the outer catch
+                    throw error;
+                }
+            }
+        }
+
+        if (!newUser) {
+            throw new Error("Failed to create user after multiple attempts due to username collision or other issues.");
+        }
 
         await logEvent({
             action: "createUser",
