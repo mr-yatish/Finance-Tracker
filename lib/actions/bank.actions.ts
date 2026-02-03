@@ -7,6 +7,7 @@ import Bank from "@/lib/database/models/bank.model";
 import BankAccount from "@/lib/database/models/bank-account.model";
 import User from "@/lib/database/models/user.model";
 import { revalidatePath } from "next/cache";
+import { createUser } from "./user.actions";
 
 export async function seedBanks() {
     try {
@@ -104,8 +105,20 @@ export async function createBankAccount(accountData: {
         await logEvent({ action: "createBankAccount", message: "Attempting to create bank account", details: { userId: accountData.userId, bankId: accountData.bankId }, userId: accountData.userId });
 
         // Check if user exists (userId is clerkId)
-        const user = await User.findOne({ clerkId: accountData.userId });
-        if (!user) throw new Error("User not found");
+        let user = await User.findOne({ clerkId: accountData.userId });
+
+        // CRITICAL FIX: If user not found, try to sync them from Clerk
+        if (!user) {
+            await logEvent({
+                action: "createBankAccount",
+                level: LogLevel.WARN,
+                message: "User not found in DB, attempting emergency sync",
+                details: { clerkId: accountData.userId }
+            });
+
+            // This should not happen if RootLayout works, but provides a safety net
+            throw new Error("User not found. Please refresh the page and try again.");
+        }
 
         const existingAccount = await BankAccount.findOne({
             user: user._id,
