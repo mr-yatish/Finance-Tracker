@@ -21,7 +21,12 @@ export default async function TransactionsPage() {
     const { userId } = await auth();
     if (!userId) redirect('/sign-in');
 
-    const transactions = await getTransactions(userId);
+    let transactions: any[] = [];
+    try {
+        transactions = await getTransactions(userId);
+    } catch (error) {
+        console.error("Failed to load transactions:", error);
+    }
 
     return (
         <div className="space-y-6">

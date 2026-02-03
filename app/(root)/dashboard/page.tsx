@@ -38,14 +38,16 @@ export default async function DashboardPage() {
 
     try {
         const stats = await getSummaryStats(user.id);
-        balance = stats?.balance;
-        income = stats?.income;
-        expense = stats?.expense;
-        chartData = stats?.chartData;
-        recentTransactions = stats?.recentTransactions;
+        if (stats) {
+            balance = stats.balance || 0;
+            income = stats.income || 0;
+            expense = stats.expense || 0;
+            chartData = stats.chartData || [];
+            recentTransactions = stats.recentTransactions || [];
+        }
     } catch (error) {
         console.error("Dashboard data fetch failed:", error);
-        // Fallback to default values initialized above
+        // Fallback to empty arrays is already handled by initializers
     }
 
     return (
@@ -126,7 +128,7 @@ export default async function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-6">
-                            {recentTransactions.slice(0, 4).map((tx: any, i: number) => (
+                            {(recentTransactions || []).slice(0, 4).map((tx: any, i: number) => (
                                 <div key={tx._id || i} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className={`h-10 w-10 rounded-full flex items-center justify-center text-lg font-bold ${i % 2 === 0 ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'}`}>

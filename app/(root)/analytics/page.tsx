@@ -7,7 +7,22 @@ export default async function AnalyticsPage() {
     const user = await currentUser();
     if (!user) return null;
 
-    const { categoryStats, monthlyStats, paymentMethodStats, bankStats } = await getAnalyticsData(user.id);
+    let categoryStats: any[] = [];
+    let monthlyStats: any[] = [];
+    let paymentMethodStats: any[] = [];
+    let bankStats: any[] = [];
+
+    try {
+        const data = await getAnalyticsData(user.id);
+        if (data) {
+            categoryStats = data.categoryStats || [];
+            monthlyStats = data.monthlyStats || [];
+            paymentMethodStats = data.paymentMethodStats || [];
+            bankStats = data.bankStats || [];
+        }
+    } catch (error) {
+        console.error("Failed to load analytics data:", error);
+    }
 
     return (
         <div className="space-y-8">
