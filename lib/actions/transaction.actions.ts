@@ -132,7 +132,13 @@ export async function getSummaryStats(clerkId: string) {
                 $group: {
                     _id: null,
                     income: { $sum: { $cond: [{ $eq: ["$type", "income"] }, "$amount", 0] } },
-                    expense: { $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] } }
+                    expense: { $sum: { $cond: [{ $eq: ["$type", "expense"] }, "$amount", 0] } },
+                    // Calculate Bank Balance (Online)
+                    bankIncome: { $sum: { $cond: [{ $and: [{ $eq: ["$type", "income"] }, { $eq: ["$paymentMethod", "online"] }] }, "$amount", 0] } },
+                    bankExpense: { $sum: { $cond: [{ $and: [{ $eq: ["$type", "expense"] }, { $eq: ["$paymentMethod", "online"] }] }, "$amount", 0] } },
+                    // Calculate Cash Balance (Cash)
+                    cashIncome: { $sum: { $cond: [{ $and: [{ $eq: ["$type", "income"] }, { $eq: ["$paymentMethod", "cash"] }] }, "$amount", 0] } },
+                    cashExpense: { $sum: { $cond: [{ $and: [{ $eq: ["$type", "expense"] }, { $eq: ["$paymentMethod", "cash"] }] }, "$amount", 0] } }
                 }
             }
         ]);
@@ -140,6 +146,12 @@ export async function getSummaryStats(clerkId: string) {
         const income = totals[0]?.income || 0;
         const expense = totals[0]?.expense || 0;
         const balance = income - expense;
+
+        const bankBalance = (totals[0]?.bankIncome || 0) - (totals[0]?.bankExpense || 0);
+        const cashBalance = (totals[0]?.cashIncome || 0) - (totals[0]?.cashExpense || 0);
+
+        const bankExpense = totals[0]?.bankExpense || 0;
+        const cashExpense = totals[0]?.cashExpense || 0;
 
         // Recent transactions (Fetch only 5)
         const recentTransactions = await Transaction.find({ user: user._id })
@@ -190,7 +202,11 @@ export async function getSummaryStats(clerkId: string) {
             income,
             expense,
             chartData: chartDataArray,
-            recentTransactions: JSON.parse(JSON.stringify(recentTransactions))
+            recentTransactions: JSON.parse(JSON.stringify(recentTransactions)),
+            bankBalance,
+            cashBalance,
+            bankExpense,
+            cashExpense
         };
 
     } catch (error: any) {

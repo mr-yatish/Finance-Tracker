@@ -21,6 +21,10 @@ export default async function DashboardPage() {
     let balance = 0;
     let income = 0;
     let expense = 0;
+    let bankBalance = 0;
+    let cashBalance = 0;
+    let bankExpense = 0;
+    let cashExpense = 0;
     let chartData: any[] = [];
     let recentTransactions: any[] = [];
 
@@ -30,12 +34,15 @@ export default async function DashboardPage() {
             balance = stats.balance || 0;
             income = stats.income || 0;
             expense = stats.expense || 0;
+            bankBalance = stats.bankBalance || 0;
+            cashBalance = stats.cashBalance || 0;
+            bankExpense = stats.bankExpense || 0;
+            cashExpense = stats.cashExpense || 0;
             chartData = stats.chartData || [];
             recentTransactions = stats.recentTransactions || [];
         }
     } catch (error) {
         console.error("Dashboard data fetch failed:", error);
-        // Fallback to empty arrays is already handled by initializers
     }
 
     return (
@@ -50,7 +57,6 @@ export default async function DashboardPage() {
                     <Badge variant="secondary" className="px-4 py-2 text-sm rounded-full bg-card shadow-sm border">
                         Welcome, {user.firstName || 'User'}
                     </Badge>
-                    {/* Placeholder for settings or date picker */}
                 </div>
             </div>
 
@@ -64,8 +70,15 @@ export default async function DashboardPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className={`text-3xl font-extrabold ${balance < 0 ? 'text-destructive' : 'text-foreground'}`}>₹{balance.toFixed(2)}</div>
-                        <p className="text-xs text-muted-foreground mt-2 font-medium">Current financial status</p>
+                        <div className={`text-3xl font-extrabold ${balance < 0 ? 'text-destructive' : 'text-foreground'}`}>₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground px-2 py-0.5 h-auto">
+                                Bank: ₹{bankBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground px-2 py-0.5 h-auto">
+                                Cash: ₹{cashBalance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </Badge>
+                        </div>
                     </CardContent>
                 </Card>
                 <Card className="rounded-3xl border-none shadow-sm bg-card/50 backdrop-blur-sm transition-all hover:shadow-md">
@@ -89,7 +102,14 @@ export default async function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-extrabold text-destructive">-₹{expense.toFixed(2)}</div>
-                        <p className="text-xs text-muted-foreground mt-2 font-medium">Total spending</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground px-2 py-0.5 h-auto">
+                                Bank: ₹{bankExpense.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground px-2 py-0.5 h-auto">
+                                Cash: ₹{cashExpense.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </Badge>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
