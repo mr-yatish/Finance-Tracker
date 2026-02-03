@@ -1,5 +1,7 @@
 "use server";
 
+import { logEvent, LogLevel } from "@/lib/actions/logger.actions";
+
 import { connectToDatabase } from "@/lib/database/mongoose";
 import Bank from "@/lib/database/models/bank.model";
 import BankAccount from "@/lib/database/models/bank-account.model";
@@ -77,13 +79,15 @@ export async function getBanks() {
 
         if (banks.length === 0 || needsUpdate) {
             console.log("Seeding/Updating banks due to missing data or old logos...");
+            await logEvent({ action: "getBanks", message: "Triggering bank seed", details: { reason: banks.length === 0 ? "No banks" : "Update needed" } });
             await seedBanks();
             banks = await Bank.find().sort({ name: 1 });
         }
 
         return JSON.parse(JSON.stringify(banks));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error fetching banks:", error);
+        await logEvent({ action: "getBanks", level: LogLevel.ERROR, message: "Failed to fetch banks", details: { error: error.message } });
         throw new Error("Failed to fetch banks");
     }
 }
@@ -97,6 +101,7 @@ export async function createBankAccount(accountData: {
 }) {
     try {
         await connectToDatabase();
+        await logEvent({ action: "createBankAccount", message: "Attempting to create bank account", details: { userId: accountData.userId, bankId: accountData.bankId }, userId: accountData.userId });
 
         // Check if user exists (userId is clerkId)
         const user = await User.findOne({ clerkId: accountData.userId });
@@ -109,6 +114,7 @@ export async function createBankAccount(accountData: {
         });
 
         if (existingAccount) {
+            await logEvent({ action: "createBankAccount", level: LogLevel.WARN, message: "Bank account already exists", details: { userId: user._id, bankId: accountData.bankId } });
             throw new Error("This bank account is already linked.");
         }
 
@@ -120,10 +126,13 @@ export async function createBankAccount(accountData: {
             upiId: accountData.upiId,
         });
 
+        await logEvent({ action: "createBankAccount", message: "Bank account created successfully", details: { accountId: newAccount._id } });
+
         revalidatePath("/dashboard");
         return JSON.parse(JSON.stringify(newAccount));
     } catch (error: any) {
         console.error("Error creating bank account:", error);
+        await logEvent({ action: "createBankAccount", level: LogLevel.ERROR, message: "Failed to create bank account", details: { error: error.message, stack: error.stack } });
         throw new Error(error.message || "Failed to create bank account");
     }
 }
