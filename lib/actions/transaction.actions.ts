@@ -113,9 +113,9 @@ export async function getTransactions(clerkId: string) {
             });
         console.log("SERVER ACTION: getTransactions sample", transactions[0]);
         return JSON.parse(JSON.stringify(transactions));
-    } catch (error) {
-        console.log(error);
-        throw new Error("Failed to get transactions");
+    } catch (error: any) {
+        console.error("Error in getTransactions:", error);
+        throw new Error(`Failed to get transactions: ${error.message}`);
     }
 }
 
@@ -171,9 +171,9 @@ export async function getSummaryStats(clerkId: string) {
             recentTransactions: JSON.parse(JSON.stringify(transactions.slice(0, 5)))
         };
 
-    } catch (error) {
-        console.log(error);
-        throw new Error("Failed to get summary");
+    } catch (error: any) {
+        console.error("Error in getSummaryStats:", error);
+        throw new Error(`Failed to get summary: ${error.message}`);
     }
 }
 
