@@ -23,6 +23,7 @@ import {
 import { EmiPaymentModal } from "@/components/shared/EmiPaymentModal";
 import { DeleteEmiDialog } from "@/components/shared/DeleteEmiDialog";
 import { DeletePaymentButton } from "@/components/shared/DeletePaymentButton";
+import { AmortizationExportButton } from "@/components/shared/AmortizationExportButton";
 
 
 export default async function EmiDetailsPage(props: { params: Promise<{ id: string }> }) {
@@ -137,6 +138,9 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
                 </TabsList>
 
                 <TabsContent value="schedule" className="mt-4">
+                    <div className="flex justify-end mb-2">
+                        <AmortizationExportButton schedule={schedule} fileName={`${emi.name.replace(/\s+/g, '_')}_schedule`} />
+                    </div>
                     <div className="border rounded-md overflow-x-auto">
                         <Table>
                             <TableHeader>
@@ -152,18 +156,21 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {schedule.map((row: any) => (
-                                    <TableRow key={row.installmentNumber}>
-                                        <TableCell className="whitespace-nowrap">{row.installmentNumber}</TableCell>
-                                        <TableCell className="whitespace-nowrap">{format(new Date(row.paymentDate), 'MMM yyyy')}</TableCell>
-                                        <TableCell className="text-muted-foreground whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.openingBalance)}</TableCell>
-                                        <TableCell className="font-medium whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.emi)}</TableCell>
-                                        <TableCell className="text-green-600 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.principal)}</TableCell>
-                                        <TableCell className="text-red-500 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.interest)}</TableCell>
-                                        <TableCell className="text-amber-600 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.gst || 0)}</TableCell>
-                                        <TableCell className="text-right font-bold text-muted-foreground whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.closingBalance)}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {schedule.map((row: any) => {
+                                    const isPaid = emi.status === 'closed' || (emi.nextPaymentDate && new Date(row.paymentDate) < new Date(emi.nextPaymentDate));
+                                    return (
+                                        <TableRow key={row.installmentNumber} className={isPaid ? "bg-green-200/50 hover:bg-green-300/50" : ""}>
+                                            <TableCell className="whitespace-nowrap">{row.installmentNumber}</TableCell>
+                                            <TableCell className="whitespace-nowrap">{format(new Date(row.paymentDate), 'MMM yyyy')}</TableCell>
+                                            <TableCell className="text-muted-foreground whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.openingBalance)}</TableCell>
+                                            <TableCell className="font-medium whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.emi)}</TableCell>
+                                            <TableCell className="text-green-600 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.principal)}</TableCell>
+                                            <TableCell className="text-red-500 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.interest)}</TableCell>
+                                            <TableCell className="text-amber-600 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.gst || 0)}</TableCell>
+                                            <TableCell className="text-right font-bold text-muted-foreground whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.closingBalance)}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </div>
