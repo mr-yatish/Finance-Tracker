@@ -39,15 +39,17 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
 
     return (
         <div className="space-y-8 pb-10">
-            <div className="flex items-center gap-4">
-                <Link href="/emis">
-                    <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{emi.name}</h1>
-                    <p className="text-muted-foreground">{emi.lender} • {emi.loanType}</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Link href="/emis">
+                        <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">{emi.name}</h1>
+                        <p className="text-muted-foreground">{emi.lender} • {emi.loanType}</p>
+                    </div>
                 </div>
-                <div className="ml-auto flex items-center gap-2">
+                <div className="flex items-center gap-2 ml-14 md:ml-0">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${emi.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-secondary text-muted-foreground'}`}>
                         {emi.status.toUpperCase()}
                     </span>
@@ -90,13 +92,15 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
                     </div>
 
                     {emi.nextPaymentDate && (
-                        <div className="bg-secondary/30 p-4 rounded-lg flex items-center gap-3">
-                            <AlertOctagon className="h-5 w-5 text-amber-500" />
-                            <div>
-                                <p className="font-medium text-sm">Next Payment Due</p>
-                                <p className="text-xs text-muted-foreground">{format(new Date(emi.nextPaymentDate), 'PPP')}</p>
+                        <div className="bg-secondary/30 p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <AlertOctagon className="h-5 w-5 text-amber-500 shrink-0" />
+                                <div>
+                                    <p className="font-medium text-sm whitespace-nowrap">Next Payment Due</p>
+                                    <p className="text-xs text-muted-foreground">{format(new Date(emi.nextPaymentDate), 'PPP')}</p>
+                                </div>
                             </div>
-                            <div className="ml-auto">
+                            <div className="w-full sm:w-auto sm:ml-auto">
                                 <EmiPaymentModal emi={JSON.parse(JSON.stringify(emi))} />
                             </div>
                         </div>
@@ -133,31 +137,31 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
                 </TabsList>
 
                 <TabsContent value="schedule" className="mt-4">
-                    <div className="border rounded-md">
+                    <div className="border rounded-md overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[80px]">#</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Opening</TableHead>
-                                    <TableHead>EMI</TableHead>
-                                    <TableHead>Principal</TableHead>
-                                    <TableHead>Interest</TableHead>
-                                    <TableHead>GST</TableHead>
-                                    <TableHead className="text-right">Closing</TableHead>
+                                    <TableHead className="w-[80px] whitespace-nowrap">#</TableHead>
+                                    <TableHead className="whitespace-nowrap">Date</TableHead>
+                                    <TableHead className="whitespace-nowrap">Opening</TableHead>
+                                    <TableHead className="whitespace-nowrap">EMI</TableHead>
+                                    <TableHead className="whitespace-nowrap">Principal</TableHead>
+                                    <TableHead className="whitespace-nowrap">Interest</TableHead>
+                                    <TableHead className="whitespace-nowrap">GST</TableHead>
+                                    <TableHead className="text-right whitespace-nowrap">Closing</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {schedule.map((row: any) => (
                                     <TableRow key={row.installmentNumber}>
-                                        <TableCell>{row.installmentNumber}</TableCell>
-                                        <TableCell>{format(new Date(row.paymentDate), 'MMM yyyy')}</TableCell>
-                                        <TableCell className="text-muted-foreground">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.openingBalance)}</TableCell>
-                                        <TableCell className="font-medium">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.emi)}</TableCell>
-                                        <TableCell className="text-green-600">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.principal)}</TableCell>
-                                        <TableCell className="text-red-500">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.interest)}</TableCell>
-                                        <TableCell className="text-amber-600">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.gst || 0)}</TableCell>
-                                        <TableCell className="text-right font-bold text-muted-foreground">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.closingBalance)}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{row.installmentNumber}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{format(new Date(row.paymentDate), 'MMM yyyy')}</TableCell>
+                                        <TableCell className="text-muted-foreground whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.openingBalance)}</TableCell>
+                                        <TableCell className="font-medium whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.emi)}</TableCell>
+                                        <TableCell className="text-green-600 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.principal)}</TableCell>
+                                        <TableCell className="text-red-500 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.interest)}</TableCell>
+                                        <TableCell className="text-amber-600 whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.gst || 0)}</TableCell>
+                                        <TableCell className="text-right font-bold text-muted-foreground whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.closingBalance)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

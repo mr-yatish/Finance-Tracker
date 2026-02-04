@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
-import { Menu, BarChart3, ArrowRight, TrendingUp, BrainCircuit, Settings } from "lucide-react";
+import { Menu, BarChart3, ArrowRight, TrendingUp, BrainCircuit, Settings, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import Link from "next/link";
@@ -47,6 +47,12 @@ export default function Header() {
                                         <Link href="/analytics" onClick={() => setSheetOpen(false)}>
                                             <span className="bg-primary/10 p-2 rounded-md"><TrendingUp className="h-4 w-4 text-primary" /></span>
                                             Analytics
+                                        </Link>
+                                    </Button>
+                                    <Button variant="ghost" className="justify-start gap-3 h-12 text-base font-medium" asChild>
+                                        <Link href="/emis" onClick={() => setSheetOpen(false)}>
+                                            <span className="bg-primary/10 p-2 rounded-md"><CreditCard className="h-4 w-4 text-primary" /></span>
+                                            Loans & EMI
                                         </Link>
                                     </Button>
                                     <Button variant="ghost" className="justify-start gap-3 h-12 text-base font-medium" asChild>

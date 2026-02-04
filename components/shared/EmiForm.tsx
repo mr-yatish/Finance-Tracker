@@ -57,10 +57,11 @@ export function EmiForm({ userId, bankAccounts }: { userId: string, bankAccounts
 
     useEffect(() => {
         if (amount > 0 && tenure > 0) {
-            if (rate === 0) {
+            const numRate = Number(rate);
+            if (numRate === 0) {
                 setEstimatedEmi(Math.round(amount / tenure));
             } else {
-                const r = rate / 12 / 100;
+                const r = numRate / 12 / 100;
                 const emi = (amount * r * Math.pow(1 + r, tenure)) / (Math.pow(1 + r, tenure) - 1);
                 setEstimatedEmi(Math.round(emi));
             }
