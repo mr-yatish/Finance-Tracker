@@ -10,6 +10,8 @@ const TransactionSchema = new Schema({
     date: { type: Date, default: Date.now },
     paymentMethod: { type: String, enum: ['online', 'cash'], default: 'online' },
     bankAccount: { type: Schema.Types.ObjectId, ref: "BankAccount" },
+    emi: { type: Schema.Types.ObjectId, ref: "Emi" }, // Link to EMI if this is an EMI payment
+    status: { type: String, enum: ['completed', 'pending', 'failed'], default: 'completed' }, // For auto-posted EMIs
 }, { timestamps: true });
 
 // Force recompilation in dev to pick up schema changes

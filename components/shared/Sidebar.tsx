@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Receipt, Settings, PieChart, BrainCircuit } from "lucide-react";
+import { LayoutDashboard, Receipt, Settings, PieChart, BrainCircuit, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const sidebarLinks = [
@@ -21,6 +21,11 @@ const sidebarLinks = [
         label: "Analytics",
         route: "/analytics",
         icon: PieChart,
+    },
+    {
+        label: "Loans & EMI",
+        route: "/emis",
+        icon: CreditCard,
     },
     {
         label: "AI Chat",
