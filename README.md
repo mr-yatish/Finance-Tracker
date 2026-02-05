@@ -1,37 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Finance Tracker
+
+**Finance Tracker** is a comprehensive personal finance management application designed to help you take control of your financial life. Built with the latest web technologies, it offers a seamless experience for tracking income, expenses, loans, and more.
+
+## Quick Links
+- [**Full Documentation**](./DOCUMENTATION.md) - **Retrieve detailed setup instructions, architecture breakdown, and feature explanations here.**
+- [Project Features](./DOCUMENTATION.md#4-key-features)
+- [Tech Stack](./DOCUMENTATION.md#2-technology-stack)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Prerequisites
+- Node.js
+- MongoDB
+- Clerk Account
 
+### 2. Quick Setup
 ```bash
+# Install dependencies
+npm install
+
+# Setup Environment Variables
+cp .env.example .env.local 
+# (Note: You must manually fill in your .env.local with real keys as per the documentation)
+
+# Run Development Server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Key Features
+- 📊 **Dashboard & Analytics**: Visualize your spending habits.
+- 💸 **Transaction Tracking**: Easy income and expense logging.
+- 🏦 **EMI Management**: Keep track of your loans and repayment schedules.
+- 🔐 **Secure Authentication**: Powered by Clerk.
+- ☁️ **Cloud Database**: MongoDB integration.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Finance-Tracker
+---
+*For a complete guide, please refer to the [DOCUMENTATION.md](./DOCUMENTATION.md) file.*
