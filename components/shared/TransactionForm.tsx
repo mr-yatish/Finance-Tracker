@@ -323,7 +323,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <SelectItem value="Other" disabled>No categories found</SelectItem>
+                                        <SelectItem value="_none" disabled>No categories found</SelectItem>
                                     )}
                                     {/* Fallback for 'other' if not in list */}
                                     {!filteredCategories.some(c => c.name.toLowerCase() === 'other') && (
