@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 
-export function MaintenanceToggle() {
-    const [enabled, setEnabled] = useState(false);
+export function MaintenanceToggle({ initialEnabled }: { initialEnabled: boolean }) {
+    const [enabled, setEnabled] = useState(initialEnabled);
     const [loading, setLoading] = useState(false);
 
     const handleToggle = async (checked: boolean) => {

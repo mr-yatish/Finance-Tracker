@@ -1,26 +1,19 @@
-import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Hammer } from "lucide-react";
 
-const MaintenancePage = () => {
+export default function MaintenancePage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-800 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-        <div className="flex justify-center mb-6">
-          <div className="bg-yellow-100 p-4 rounded-full">
-            <AlertTriangle className="h-12 w-12 text-yellow-600" />
-          </div>
-        </div>
-        <h1 className="text-3xl font-bold mb-4 text-gray-900">Under Maintenance</h1>
-        <p className="text-gray-600 mb-6">
-          We are currently updating our system to provide you with a better experience. 
-          Please check back shortly.
-        </p>
-        <div className="text-sm text-gray-500">
-          Expected uptime: <span className="font-semibold text-gray-700">Soon</span>
-        </div>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
+      <div className="mb-4 rounded-full bg-slate-100 p-4 dark:bg-slate-800">
+        <Hammer className="h-10 w-10 text-slate-900 dark:text-slate-100" />
       </div>
+      <h1 className="mb-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
+        We are currently under maintenance
+      </h1>
+      <p className="mb-8 max-w-md text-slate-600 dark:text-slate-400">
+        We're checking underneath the hood. We should be back shortly. Thank you for your patience.
+      </p>
     </div>
   );
-};
-
-export default MaintenancePage;
+}

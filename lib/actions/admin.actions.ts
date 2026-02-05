@@ -6,6 +6,7 @@ import User from "@/lib/database/models/user.model";
 import AuditLog from "@/lib/database/models/audit-log.model";
 import Transaction from "@/lib/database/models/transaction.model";
 import Emi from "@/lib/database/models/emi.model";
+import SystemConfig from "@/lib/database/models/system-config.model";
 import { checkAdmin } from "@/lib/rbac";
 import { revalidatePath } from "next/cache";
 
@@ -25,11 +26,16 @@ export async function getGlobalStats() {
 
     const activeEmis = await Emi.countDocuments({ status: 'active' });
 
+    // Get Maintenance Status
+    const maintenanceConfig = await SystemConfig.findOne({ key: 'MAINTENANCE_MODE' });
+    const isMaintenanceMode = maintenanceConfig?.value === true;
+
     return {
         totalUsers,
         activeUsers,
         totalVolume,
-        activeEmis
+        activeEmis,
+        isMaintenanceMode
     };
 }
 
@@ -111,7 +117,33 @@ export async function getAdminLogs() {
 
 export async function toggleMaintenanceMode(enabled: boolean) {
     await checkAdmin();
-    // Implementation requires external config store.
-    console.log("Maintenance mode toggle:", enabled);
-    return { success: true, message: "Maintenance toggle logged. Requires deployment or DB config to persist." };
+    await connectToDatabase();
+
+    const currentUser = await auth();
+
+    await SystemConfig.findOneAndUpdate(
+        { key: 'MAINTENANCE_MODE' },
+        {
+            key: 'MAINTENANCE_MODE',
+            value: enabled,
+            description: 'Global maintenance mode flag'
+        },
+        { upsert: true, new: true }
+    );
+
+    await AuditLog.create({
+        action: 'TOGGLE_MAINTENANCE',
+        entity: 'SYSTEM',
+        performedBy: currentUser.userId || 'system',
+        details: { enabled }
+    });
+
+    revalidatePath('/');
+    return { success: true, message: `Maintenance mode ${enabled ? 'enabled' : 'disabled'}` };
+}
+
+export async function getMaintenanceStatus() {
+    await connectToDatabase();
+    const config = await SystemConfig.findOne({ key: 'MAINTENANCE_MODE' });
+    return config?.value === true;
 }

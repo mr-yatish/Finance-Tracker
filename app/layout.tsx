@@ -72,6 +72,82 @@ export default async function RootLayout({
     }
   }
 
+  // Check for maintenance mode
+  let isMaintenanceMode = false;
+  try {
+    const { getMaintenanceStatus } = await import("@/lib/actions/admin.actions");
+    isMaintenanceMode = await getMaintenanceStatus();
+  } catch (e) {
+    console.error("Failed to check maintenance status", e);
+  }
+
+  // Check if user is admin
+  let isAdmin = false;
+  try {
+    if (user) {
+      // Robust check for admin role
+      // @ts-ignore
+      const metadataRole = user.publicMetadata?.role;
+      // You can also check db user here if needed, but metadata is faster
+      if (metadataRole === 'ADMIN') {
+        isAdmin = true;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to check admin status", e);
+  }
+
+  // Allow access to maintenance page itself to avoid loops (handled by middleware usually but good to be safe)
+  // But inside layout we are rendering children. 
+  // If maintenance mode is ON and user is NOT admin:
+  if (isMaintenanceMode && !isAdmin) {
+    // We can render the maintenance page directly here instead of children, 
+    // but we must ensure we don't break the html structure.
+    // However, redirecting from layout is cleaner for strict enforcement.
+    // We need to allow the /maintenance route specifically, but we are in RootLayout.
+    // The best way is to check the header or let middleware handle it, 
+    // BUT middleware cannot easily read our DB.
+    // So we will render Maintenance component if condition met, 
+    // UNLESS we are already on the maintenance page? 
+    // In App Router, we don't easily know the current route in RootLayout without headers.
+    // A safer bet: Render MaintenancePage content if mode is on.
+
+    // Note: This replaces ALL children with Maintenance Page.
+    // We need to verify we aren't already viewing it? 
+    // Actually, if we just render it here, the URL stays the same, which is fine.
+
+    /* 
+       EXCEPTION: We must allow /admin login or some way to get in. 
+       But regular users are blocked. Admins are allowed (isAdmin=true).
+    */
+    const MaintenancePage = (await import("@/app/maintenance/page")).default;
+
+    return (
+      <ClerkProvider>
+        <html lang="en" suppressHydrationWarning>
+          <body
+            className={cn(
+              "min-h-screen bg-background font-sans antialiased",
+              geistSans.variable,
+              geistMono.variable,
+              outfit.variable
+            )}
+          >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <MaintenancePage />
+              <Toaster />
+            </ThemeProvider>
+          </body>
+        </html>
+      </ClerkProvider>
+    );
+  }
+
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>

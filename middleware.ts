@@ -6,23 +6,8 @@ const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/transactions(.*
 const isMaintenanceRoute = createRouteMatcher(['/maintenance']);
 
 export default clerkMiddleware(async (auth, req) => {
-    // Check for maintenance mode
-    const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
-
-    if (isMaintenanceMode) {
-        // Allow access to the maintenance page itself
-        if (isMaintenanceRoute(req)) {
-            return NextResponse.next();
-        }
-
-        // Redirect all other traffic to maintenance page
-        return NextResponse.redirect(new URL('/maintenance', req.url));
-    } else {
-        // If not in maintenance mode, but trying to access maintenance page, redirect to home
-        if (isMaintenanceRoute(req)) {
-            return NextResponse.redirect(new URL('/', req.url));
-        }
-    }
+    // Maintenance mode is now handled in app/layout.tsx via database check.
+    // Middleware only handles route protection.
 
     const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 

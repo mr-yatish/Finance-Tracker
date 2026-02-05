@@ -10,7 +10,7 @@ export default async function AdminDashboard() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-                <MaintenanceToggle />
+                <MaintenanceToggle initialEnabled={stats.isMaintenanceMode} />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
