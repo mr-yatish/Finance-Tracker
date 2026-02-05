@@ -7,6 +7,7 @@ import AuditLog from "@/lib/database/models/audit-log.model";
 import Transaction from "@/lib/database/models/transaction.model";
 import Emi from "@/lib/database/models/emi.model";
 import SystemConfig from "@/lib/database/models/system-config.model";
+import SystemLog from "@/lib/database/models/system-log.model";
 import { checkAdmin } from "@/lib/rbac";
 import { revalidatePath } from "next/cache";
 
@@ -107,12 +108,51 @@ export async function updateUserRole(userId: string, role: string, permissions: 
 }
 
 // Fetch Admin Logs
-export async function getAdminLogs() {
+// Fetch Admin Logs
+export async function getAdminLogs(filters?: {
+    action?: string;
+    entity?: string;
+    performedBy?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+}) {
     await checkAdmin();
     await connectToDatabase();
 
-    const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(100);
-    return JSON.parse(JSON.stringify(logs));
+    const query: any = {};
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    const skip = (page - 1) * limit;
+
+    if (filters?.action && filters.action !== 'ALL') {
+        query.action = filters.action;
+    }
+
+    if (filters?.entity && filters.entity !== 'ALL') {
+        query.entity = filters.entity;
+    }
+
+    if (filters?.performedBy) {
+        query.performedBy = filters.performedBy;
+    }
+
+    if (filters?.search) {
+        query.$or = [
+            { entityId: { $regex: filters.search, $options: 'i' } },
+            { 'details.error': { $regex: filters.search, $options: 'i' } },
+        ];
+    }
+
+    const logs = await AuditLog.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await AuditLog.countDocuments(query);
+
+    return {
+        logs: JSON.parse(JSON.stringify(logs)),
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        totalLogs: total
+    };
 }
 
 export async function toggleMaintenanceMode(enabled: boolean) {
@@ -140,6 +180,55 @@ export async function toggleMaintenanceMode(enabled: boolean) {
 
     revalidatePath('/');
     return { success: true, message: `Maintenance mode ${enabled ? 'enabled' : 'disabled'}` };
+}
+
+// Fetch System Logs (User App Logs)
+export async function getSystemLogs(filters?: {
+    level?: string;
+    action?: string;
+    userId?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+}) {
+    await checkAdmin();
+    await connectToDatabase();
+
+    const query: any = {};
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    const skip = (page - 1) * limit;
+
+    if (filters?.level && filters.level !== 'ALL') {
+        query.level = filters.level;
+    }
+
+    if (filters?.action && filters.action !== 'ALL') {
+        // Allow partial match on action for flexibility or exact
+        query.action = filters.action;
+    }
+
+    if (filters?.userId) {
+        query.userId = filters.userId;
+    }
+
+    if (filters?.search) {
+        query.$or = [
+            { message: { $regex: filters.search, $options: 'i' } },
+            { action: { $regex: filters.search, $options: 'i' } },
+            { userId: { $regex: filters.search, $options: 'i' } },
+        ];
+    }
+
+    const logs = await SystemLog.find(query).sort({ timestamp: -1 }).skip(skip).limit(limit);
+    const total = await SystemLog.countDocuments(query);
+
+    return {
+        logs: JSON.parse(JSON.stringify(logs)),
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        totalLogs: total
+    };
 }
 
 export async function getMaintenanceStatus() {
