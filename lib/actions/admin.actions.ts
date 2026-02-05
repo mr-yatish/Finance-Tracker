@@ -182,6 +182,43 @@ export async function toggleMaintenanceMode(enabled: boolean) {
     return { success: true, message: `Maintenance mode ${enabled ? 'enabled' : 'disabled'}` };
 }
 
+// Generic System Config Management
+export async function getSystemConfig(key: string) {
+    await checkAdmin();
+    await connectToDatabase();
+    const config = await SystemConfig.findOne({ key });
+    return config ? JSON.parse(JSON.stringify(config)) : null;
+}
+
+export async function updateSystemConfig(key: string, value: any, description?: string) {
+    await checkAdmin();
+    await connectToDatabase();
+
+    const currentUser = await auth();
+
+    const config = await SystemConfig.findOneAndUpdate(
+        { key },
+        {
+            key,
+            value,
+            ...(description && { description })
+        },
+        { upsert: true, new: true }
+    );
+
+    // Log the update
+    await AuditLog.create({
+        action: 'UPDATE_CONFIG',
+        entity: 'SYSTEM_CONFIG',
+        entityId: key,
+        performedBy: currentUser.userId || 'system',
+        details: { key, value }
+    });
+
+    revalidatePath('/admin');
+    return { success: true, data: JSON.parse(JSON.stringify(config)) };
+}
+
 // Fetch System Logs (User App Logs)
 export async function getSystemLogs(filters?: {
     level?: string;

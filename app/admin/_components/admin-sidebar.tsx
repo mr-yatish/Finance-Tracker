@@ -18,6 +18,7 @@ const sidebarLinks = [
     { name: "User Management", href: "/admin/users", icon: Users },
     { name: "System Logs", href: "/admin/logs", icon: Activity },
     { name: "Bank Master", href: "/admin/banks", icon: Landmark },
+    { name: "Configurations", href: "/admin/configurations", icon: Settings },
 ];
 
 export function AdminSidebar() {

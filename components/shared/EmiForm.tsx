@@ -32,6 +32,16 @@ export function EmiForm({ userId, bankAccounts }: { userId: string, bankAccounts
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [estimatedEmi, setEstimatedEmi] = useState<number | null>(null);
+    const [loanTypes, setLoanTypes] = useState<string[]>([]);
+
+    useEffect(() => {
+        const fetchConfigs = async () => {
+            const { getPublicSystemConfigs } = await import("@/lib/actions/system.actions");
+            const configs = await getPublicSystemConfigs();
+            setLoanTypes(configs.loanTypes);
+        };
+        fetchConfigs();
+    }, []);
 
     const form = useForm<EmiFormValues>({
         resolver: zodResolver(emiSchema) as any, // Cast to any to avoid strict type mismatch
@@ -115,14 +125,14 @@ export function EmiForm({ userId, bankAccounts }: { userId: string, bankAccounts
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Loan Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {['Home Loan', 'Personal Loan', 'Vehicle Loan', 'Education Loan', 'Credit Card', 'BNPL', 'Informal', 'Other'].map((type) => (
+                                        {loanTypes.map((type) => (
                                             <SelectItem key={type} value={type}>{type}</SelectItem>
                                         ))}
                                     </SelectContent>

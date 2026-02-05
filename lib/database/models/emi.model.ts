@@ -6,7 +6,7 @@ const EmiSchema = new Schema({
     loanType: {
         type: String,
         required: true,
-        enum: ['Home Loan', 'Personal Loan', 'Vehicle Loan', 'Education Loan', 'Credit Card', 'BNPL', 'Informal', 'Other']
+        // Enum removed to allow dynamic management via Admin Panel
     },
     totalAmount: { type: Number, required: true },
     interestRate: { type: Number, required: true },

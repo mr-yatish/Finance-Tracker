@@ -50,6 +50,8 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
     const [bankAccounts, setBankAccounts] = useState<any[]>([]);
     const [isAddBankOpen, setIsAddBankOpen] = useState(false);
 
+    const [categories, setCategories] = useState<{ name: string, type: string }[]>([]);
+
     const form = useForm<TransactionFormValues>({
         resolver: zodResolver(transactionSchema) as any,
         defaultValues: defaultValues || {
@@ -62,6 +64,20 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
             bankAccount: "",
         },
     })
+
+    // Fetch system configs
+    useEffect(() => {
+        const fetchConfigs = async () => {
+            const { getPublicSystemConfigs } = await import("@/lib/actions/system.actions");
+            const configs = await getPublicSystemConfigs();
+            setCategories(configs.categories);
+        };
+        fetchConfigs();
+    }, []);
+
+    // Filter categories based on transaction type
+    const type = form.watch("type");
+    const filteredCategories = categories.filter(c => c.type === type);
 
     const paymentMethod = form.watch("paymentMethod");
 
@@ -285,27 +301,34 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                     </div>
                 )}
 
+
+
                 <FormField
                     control={form.control}
                     name="category"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Category</FormLabel>
-                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
+                            <Select key={`${field.value}-${type}`} onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="food">Food</SelectItem>
-                                    <SelectItem value="housing">Housing</SelectItem>
-                                    <SelectItem value="transport">Transport</SelectItem>
-                                    <SelectItem value="salary">Salary</SelectItem>
-                                    <SelectItem value="utilities">Utilities</SelectItem>
-                                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                                    <SelectItem value="sutta">Sutta</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
+                                    {filteredCategories.length > 0 ? (
+                                        filteredCategories.map((cat) => (
+                                            <SelectItem key={`${cat.name}-${cat.type}`} value={cat.name}>
+                                                {cat.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value="Other" disabled>No categories found</SelectItem>
+                                    )}
+                                    {/* Fallback for 'other' if not in list */}
+                                    {!filteredCategories.some(c => c.name.toLowerCase() === 'other') && (
+                                        <SelectItem value="Other">Other</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
