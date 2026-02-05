@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { UserEditDialog } from "./user-edit-dialog";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface UsersTableProps {
     users: any[];
@@ -64,7 +65,12 @@ export function UsersTable({ users }: UsersTableProps) {
                             </TableCell>
                             <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell className="text-right">
-                                <UserEditDialog user={user} onSuccess={handleSuccess} />
+                                <div className="flex items-center gap-2 justify-end">
+                                    <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/users/${user._id}`)}>
+                                        View
+                                    </Button>
+                                    <UserEditDialog user={user} onSuccess={handleSuccess} />
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}
