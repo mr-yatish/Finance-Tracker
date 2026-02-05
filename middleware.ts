@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { log } from "node:console";
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/transactions(.*)']);
 const isMaintenanceRoute = createRouteMatcher(['/maintenance']);
@@ -15,13 +16,27 @@ export default clerkMiddleware(async (auth, req) => {
         }
 
         // Redirect all other traffic to maintenance page
-        // We might want to allow some paths like specific APIs or static files
-        // The matcher config usually handles static files, so we focus on pages here.
         return NextResponse.redirect(new URL('/maintenance', req.url));
     } else {
         // If not in maintenance mode, but trying to access maintenance page, redirect to home
         if (isMaintenanceRoute(req)) {
             return NextResponse.redirect(new URL('/', req.url));
+        }
+    }
+
+    const isAdminRoute = createRouteMatcher(['/admin(.*)']);
+
+    if (isAdminRoute(req)) {
+        await auth.protect();
+
+        const { sessionClaims } = await auth();
+        // Check both locations for metadata
+        // @ts-ignore
+        const role = sessionClaims?.metadata?.role || sessionClaims?.publicMetadata?.role;
+
+        if (role !== 'ADMIN') {
+            // const url = new URL('/dashboard', req.url);
+            // return NextResponse.redirect(url);
         }
     }
 

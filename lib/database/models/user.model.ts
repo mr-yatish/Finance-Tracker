@@ -7,6 +7,9 @@ const UserSchema = new Schema({
     firstName: { type: String },
     lastName: { type: String },
     photo: { type: String },
+    role: { type: String, default: 'USER', enum: ['USER', 'ADMIN'] },
+    permissions: { type: [String], default: [] },
+    isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 const User = models?.User || model("User", UserSchema);

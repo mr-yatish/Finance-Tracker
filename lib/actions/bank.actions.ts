@@ -1,13 +1,12 @@
 "use server";
 
 import { logEvent, LogLevel } from "@/lib/actions/logger.actions";
-
 import { connectToDatabase } from "@/lib/database/mongoose";
 import Bank from "@/lib/database/models/bank.model";
 import BankAccount from "@/lib/database/models/bank-account.model";
 import User from "@/lib/database/models/user.model";
 import { revalidatePath } from "next/cache";
-import { createUser } from "./user.actions";
+import { checkAdmin } from "@/lib/rbac";
 
 export async function seedBanks() {
     try {
@@ -46,14 +45,8 @@ export async function seedBanks() {
             { name: "City Union Bank", acceptsOnline: true, logo: "https://www.google.com/s2/favicons?domain=cityunionbank.com&sz=128" },
         ];
 
-        // Delete existing banks to re-seed with logos if needed, or just update upsert logic.
-        // For safe update of logos without clearing IDs if they exist:
-        // upsert handles it.
-
-        console.log("Starting bank seed...");
         console.log("Starting bank seed...");
 
-        // Use Promise.all for parallel execution to speed up seeding and prevent potential timeouts
         await Promise.all(banks.map(bank =>
             Bank.updateOne(
                 { name: bank.name },
@@ -74,22 +67,50 @@ export async function getBanks() {
     try {
         await connectToDatabase();
         let banks = await Bank.find().sort({ name: 1 });
-
-        // Check for old/broken logos (using Bank of India as marker) to trigger re-seed
-        const needsUpdate = await Bank.findOne({ name: "Bank of India", logo: { $regex: "duckduckgo" } });
-
-        if (banks.length === 0 || needsUpdate) {
-            console.log("Seeding/Updating banks due to missing data or old logos...");
-            await logEvent({ action: "getBanks", message: "Triggering bank seed", details: { reason: banks.length === 0 ? "No banks" : "Update needed" } });
-            await seedBanks();
-            banks = await Bank.find().sort({ name: 1 });
-        }
-
         return JSON.parse(JSON.stringify(banks));
     } catch (error: any) {
         console.error("Error fetching banks:", error);
         await logEvent({ action: "getBanks", level: LogLevel.ERROR, message: "Failed to fetch banks", details: { error: error.message } });
         throw new Error("Failed to fetch banks");
+    }
+}
+
+export async function createBank(data: { name: string; logo?: string; acceptsOnline?: boolean }) {
+    await checkAdmin();
+    await connectToDatabase();
+
+    try {
+        const newBank = await Bank.create(data);
+        revalidatePath('/admin/banks');
+        return JSON.parse(JSON.stringify(newBank));
+    } catch (error: any) {
+        throw new Error(`Failed to create bank: ${error.message}`);
+    }
+}
+
+export async function updateBank(id: string, data: Partial<{ name: string; logo: string; acceptsOnline: boolean }>) {
+    await checkAdmin();
+    await connectToDatabase();
+
+    try {
+        const updatedBank = await Bank.findByIdAndUpdate(id, data, { new: true });
+        revalidatePath('/admin/banks');
+        return JSON.parse(JSON.stringify(updatedBank));
+    } catch (error: any) {
+        throw new Error(`Failed to update bank: ${error.message}`);
+    }
+}
+
+export async function deleteBank(id: string) {
+    await checkAdmin();
+    await connectToDatabase();
+
+    try {
+        await Bank.findByIdAndDelete(id);
+        revalidatePath('/admin/banks');
+        return { success: true };
+    } catch (error: any) {
+        throw new Error(`Failed to delete bank: ${error.message}`);
     }
 }
 
@@ -104,10 +125,8 @@ export async function createBankAccount(accountData: {
         await connectToDatabase();
         await logEvent({ action: "createBankAccount", message: "Attempting to create bank account", details: { userId: accountData.userId, bankId: accountData.bankId }, userId: accountData.userId });
 
-        // Check if user exists (userId is clerkId)
         let user = await User.findOne({ clerkId: accountData.userId });
 
-        // CRITICAL FIX: If user not found, try to sync them from Clerk
         if (!user) {
             await logEvent({
                 action: "createBankAccount",
@@ -115,8 +134,6 @@ export async function createBankAccount(accountData: {
                 message: "User not found in DB, attempting emergency sync",
                 details: { clerkId: accountData.userId }
             });
-
-            // This should not happen if RootLayout works, but provides a safety net
             throw new Error("User not found. Please refresh the page and try again.");
         }
 
@@ -153,14 +170,11 @@ export async function createBankAccount(accountData: {
 export async function getUserBankAccounts(userId: string) {
     try {
         await connectToDatabase();
-
-        // Check if user exists (userId is clerkId)
         const user = await User.findOne({ clerkId: userId });
         if (!user) {
             console.error(`User not found for ID: ${userId}`);
             throw new Error("User not found");
         }
-
         const accounts = await BankAccount.find({ user: user._id }).populate('bank');
         return JSON.parse(JSON.stringify(accounts));
     } catch (error: any) {
