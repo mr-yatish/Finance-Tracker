@@ -7,6 +7,7 @@ import NotificationPreference from "@/lib/database/models/notification-preferenc
 import User from "@/lib/database/models/user.model";
 import { sendPushNotification, sendBatchPushNotification } from "@/lib/firebase/firebase-admin";
 import { revalidatePath } from "next/cache";
+import { triggerNotificationUpdate } from "@/lib/utils/notification-stream";
 
 // ============================================
 // DEVICE TOKEN MANAGEMENT
@@ -361,6 +362,9 @@ export async function createNotification(
         }
 
         revalidatePath("/dashboard");
+
+        // Trigger real-time update via SSE
+        triggerNotificationUpdate(clerkId, notification);
 
         return {
             success: true,

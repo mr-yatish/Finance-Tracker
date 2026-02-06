@@ -66,26 +66,42 @@ export default function NotificationBell() {
     };
 
     useEffect(() => {
+        if (!user) return;
+
         fetchNotifications();
         checkPermissionStatus();
 
-        // Set up foreground message listener
+        // Set up Server-Sent Events for real-time updates
+        const eventSource = new EventSource('/api/notifications/stream');
+
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('📡 SSE Event received:', data);
+
+            if (data.type === 'notification') {
+                // New notification received - refresh immediately
+                console.log('🔔 New notification via SSE!', data.notification);
+                fetchNotifications();
+            }
+        };
+
+        eventSource.onerror = (error) => {
+            console.error('SSE Error:', error);
+            eventSource.close();
+        };
+
+        // Set up Firebase foreground message listener
         const unsubscribe = onForegroundMessage((payload) => {
-            console.log("Foreground notification received:", payload);
+            console.log("🔥 Firebase foreground message:", payload);
             // Refresh notifications
             fetchNotifications();
         });
 
-        // Poll for new notifications every 30 seconds
-        const pollInterval = setInterval(() => {
-            fetchNotifications();
-        }, 30000); // 30 seconds
-
         return () => {
+            eventSource.close();
             if (typeof unsubscribe === "function") {
                 unsubscribe();
             }
-            clearInterval(pollInterval);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
