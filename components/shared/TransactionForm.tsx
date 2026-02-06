@@ -180,7 +180,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                         type="button"
                                         variant={field.value === "income" ? "default" : "outline"}
                                         className={cn(
-                                            "flex-1",
+                                            "flex-1 h-10",
                                             field.value === "income" && "bg-emerald-500 hover:bg-emerald-600 text-white"
                                         )}
                                         onClick={() => field.onChange("income")}
@@ -191,7 +191,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                         type="button"
                                         variant={field.value === "expense" ? "default" : "outline"}
                                         className={cn(
-                                            "flex-1",
+                                            "flex-1 h-10",
                                             field.value === "expense" && "bg-rose-500 hover:bg-rose-600 text-white"
                                         )}
                                         onClick={() => field.onChange("expense")}
@@ -210,19 +210,19 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                     control={form.control}
                     name="paymentMethod"
                     render={({ field }) => (
-                        <FormItem className="space-y-1">
+                        <FormItem className="space-y-3">
                             <FormLabel>Payment Method</FormLabel>
                             <FormControl>
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4"
+                                    className="flex flex-row gap-6"
                                 >
                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                         <FormControl>
                                             <RadioGroupItem value="online" />
                                         </FormControl>
-                                        <FormLabel className="font-normal">
+                                        <FormLabel className="font-normal cursor-pointer">
                                             Online
                                         </FormLabel>
                                     </FormItem>
@@ -230,7 +230,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                         <FormControl>
                                             <RadioGroupItem value="cash" />
                                         </FormControl>
-                                        <FormLabel className="font-normal">
+                                        <FormLabel className="font-normal cursor-pointer">
                                             Cash
                                         </FormLabel>
                                     </FormItem>
@@ -242,7 +242,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                 />
 
                 {paymentMethod === "online" && (
-                    <div className="space-y-2">
+                    <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
                         <FormField
                             control={form.control}
                             name="bankAccount"
@@ -252,7 +252,7 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                                     {bankAccounts.length > 0 ? (
                                         <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="h-10">
                                                     <SelectValue placeholder="Select Bank Account" />
                                                 </SelectTrigger>
                                             </FormControl>
@@ -284,11 +284,11 @@ export function TransactionForm({ onSuccess, defaultValues, transactionId }: Tra
                         />
                         <Dialog open={isAddBankOpen} onOpenChange={setIsAddBankOpen}>
                             <DialogTrigger asChild>
-                                <Button type="button" variant="outline" size="sm" className="w-full">
-                                    <Plus className="mr-2 h-4 w-4" /> Add Bank Account
+                                <Button type="button" variant="outline" size="sm" className="w-full h-10 border-dashed">
+                                    <Plus className="mr-2 h-4 w-4" /> Add New Bank Account
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="sm:max-w-md w-[95vw] rounded-lg max-h-[85vh] overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle>Add Bank Account</DialogTitle>
                                 </DialogHeader>

@@ -87,12 +87,10 @@ export function UserEditDialog({ user, onSuccess }: UserEditDialogProps) {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="role" className="text-right">
-                            Role
-                        </Label>
+                    <div className="grid gap-2">
+                        <Label htmlFor="role">Role</Label>
                         <Select value={role} onValueChange={handleRoleChange}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select role" />
                             </SelectTrigger>
                             <SelectContent>

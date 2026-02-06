@@ -78,7 +78,7 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
             </div>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Transaction</DialogTitle>
                         <DialogDescription>
