@@ -35,6 +35,26 @@ export async function createTransaction(transactionData: any, clerkId: string) {
             user: user._id,
         });
 
+        // 🔔 Send notification
+        try {
+            const { createNotification } = await import("@/lib/actions/notification.actions");
+            await createNotification(clerkId, {
+                title: `${isIncome ? "💰" : "💸"} ${isIncome ? "Income" : "Expense"} Recorded`,
+                message: `₹${transactionData.amount.toLocaleString()} - ${transactionData.category}${transactionData.description ? ": " + transactionData.description : ""}`,
+                type: "transaction",
+                data: {
+                    transactionId: newTransaction._id.toString(),
+                    amount: transactionData.amount.toString(),
+                    category: transactionData.category,
+                },
+                actionUrl: "/transactions",
+                sendPush: true,
+            });
+        } catch (notifError) {
+            // Don't fail transaction if notification fails
+            console.error("Notification failed:", notifError);
+        }
+
         revalidatePath("/transactions");
         revalidatePath("/dashboard");
         revalidatePath("/analytics");
