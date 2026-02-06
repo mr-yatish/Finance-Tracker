@@ -33,13 +33,13 @@ export default async function ConfigurationsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold tracking-tight">Configurations</h2>
-                <p className="text-muted-foreground">Manage global system options and details.</p>
+            <div className="flex flex-col gap-2">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Configurations</h2>
+                <p className="text-sm text-muted-foreground">Manage global system options and details.</p>
             </div>
 
             <Tabs defaultValue="categories" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+                <TabsList className="grid w-full grid-cols-2 sm:w-[400px]">
                     <TabsTrigger value="categories">Categories</TabsTrigger>
                     <TabsTrigger value="loantypes">Loan Types</TabsTrigger>
                 </TabsList>

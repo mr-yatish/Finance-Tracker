@@ -17,12 +17,12 @@ export default async function BanksPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold tracking-tight">Bank Master Data</h2>
-                <BankDialog mode="create" trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Bank</Button>} />
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Bank Master Data</h2>
+                <BankDialog mode="create" trigger={<Button className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Add Bank</Button>} />
             </div>
 
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>

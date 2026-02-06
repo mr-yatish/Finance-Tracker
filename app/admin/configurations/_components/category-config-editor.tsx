@@ -60,7 +60,7 @@ export function CategoryConfigEditor({ initialCategories }: CategoryEditorProps)
                 <CardDescription>Manage income and expense categories available in the system.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                     <Input
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
@@ -69,7 +69,7 @@ export function CategoryConfigEditor({ initialCategories }: CategoryEditorProps)
                         onKeyDown={(e) => e.key === 'Enter' && addCategory()}
                     />
                     <Select value={newType} onValueChange={(val: any) => setNewType(val)}>
-                        <SelectTrigger className="w-[120px]">
+                        <SelectTrigger className="w-full sm:w-[120px]">
                             <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -77,7 +77,7 @@ export function CategoryConfigEditor({ initialCategories }: CategoryEditorProps)
                             <SelectItem value="income">Income</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button onClick={addCategory} size="icon">
+                    <Button onClick={addCategory} size="icon" className="sm:size-auto">
                         <Plus className="h-4 w-4" />
                     </Button>
                 </div>

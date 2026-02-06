@@ -43,24 +43,24 @@ export default async function LogsPage(props: LogsPageProps) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold tracking-tight">Logs</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Logs</h2>
             </div>
 
             <Tabs defaultValue={activeTab} className="w-full">
-                <div className="flex items-center justify-between mb-4">
-                    <TabsList>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <TabsList className="w-full sm:w-auto">
                         {/* Tab Switchers as Forms/Buttons to keep server state */}
                         <form action="">
                             <input type="hidden" name="tab" value="system" />
                             <input type="hidden" name="page" value="1" />
-                            <button type="submit" className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'system' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
+                            <button type="submit" className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md ${activeTab === 'system' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
                                 System Logs
                             </button>
                         </form>
                         <form action="" className="ml-2">
                             <input type="hidden" name="tab" value="audit" />
                             <input type="hidden" name="page" value="1" />
-                            <button type="submit" className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'audit' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
+                            <button type="submit" className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md ${activeTab === 'audit' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
                                 Admin Audit
                             </button>
                         </form>
@@ -69,7 +69,7 @@ export default async function LogsPage(props: LogsPageProps) {
 
                 <SystemLogsFilter type={activeTab as 'system' | 'audit'} />
 
-                <div className="rounded-md border">
+                <div className="rounded-md border overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
