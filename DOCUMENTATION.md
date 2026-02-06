@@ -147,6 +147,9 @@ Deep dive into financial health:
 - **BankAccount**: User's specific accounts (linked to `User` and `Bank`).
 - **EMI**: Loan records with schedule details.
 - **SystemLog**: Application-level logs for debugging.
+- **Notification**: In-app and push notifications (Fields: `userId`, `title`, `message`, `type`, `isRead`)
+- **UserDevice**: FCM tokens for push notifications (Fields: `userId`, `fcmToken`, `deviceInfo`, `isActive`)
+- **NotificationPreference**: User notification settings (Fields: `userId`, `pushEnabled`, `categories`, `quietHours`)
 
 ## 7. Scripts
 
@@ -154,8 +157,32 @@ Deep dive into financial health:
 - `npm run build`: Builds the application for production.
 - `npm run start`: Starts the production server.
 - `npm run lint`: Runs ESLint for code quality checks.
+- `npm run notification:indexes`: Creates MongoDB indexes for notification system.
+- `npm run notification:cleanup`: Cleans up old notifications and inactive devices.
 
-## 8. Deployment
+## 8. Notification System
+
+Finance Tracker includes a complete notification system with:
+- **Web Push Notifications** using Firebase Cloud Messaging
+- **In-App Notification Center** with bell icon and dropdown
+- **User Preferences** for granular control
+- **Multi-Device Support** for seamless experience across devices
+
+### Quick Start
+```bash
+# Install dependencies
+npm install @radix-ui/react-scroll-area firebase firebase-admin
+
+# Create database indexes
+npm run notification:indexes
+```
+
+### Documentation
+- **Architecture & Design**: See [`docs/notification-system/IMPLEMENTATION_PLAN.md`](./docs/notification-system/IMPLEMENTATION_PLAN.md)
+- **Production Deployment**: See [`docs/notification-system/PRODUCTION_CHECKLIST.md`](./docs/notification-system/PRODUCTION_CHECKLIST.md)
+- **Quick Reference**: See [`docs/notification-system/README.md`](./docs/notification-system/README.md)
+
+## 9. Deployment
 
 The application is optimized for deployment on **Vercel**.
 1. Push your code to a Git repository.

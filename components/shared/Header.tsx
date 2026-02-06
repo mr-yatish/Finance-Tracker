@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
+import NotificationBell from "./NotificationBell";
 
 export default function Header() {
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -84,6 +85,7 @@ export default function Header() {
             </div>
             <div className="flex items-center gap-2">
                 <ModeToggle />
+                <NotificationBell />
                 <UserButton />
             </div>
         </header>
