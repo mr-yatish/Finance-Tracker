@@ -15,6 +15,15 @@ export default function NotificationToast() {
     useEffect(() => {
         if (!user) return;
 
+        // Track recently shown notifications to prevent duplicates
+        const shownNotifications = new Set<string>();
+
+        // Clear old entries after 10 seconds
+        const clearOldEntries = () => {
+            shownNotifications.clear();
+        };
+        const cleanupInterval = setInterval(clearOldEntries, 10000);
+
         // Set up Server-Sent Events for real-time updates
         const eventSource = new EventSource('/api/notifications/stream');
 
@@ -24,7 +33,17 @@ export default function NotificationToast() {
 
             if (data.type === 'notification' && data.notification) {
                 const notification = data.notification;
-                
+                const notifId = notification.id || notification._id;
+
+                // CHECK: Skip if already shown
+                if (shownNotifications.has(notifId)) {
+                    console.log('⏭️ Skipping duplicate toast for:', notifId);
+                    return;
+                }
+
+                // Mark as shown
+                shownNotifications.add(notifId);
+
                 // Show toast notification in top-right
                 toast(notification.title, {
                     description: notification.message,
@@ -47,13 +66,27 @@ export default function NotificationToast() {
         };
 
         // Set up Firebase foreground message listener
+        // NOTE: We only log Firebase messages, SSE handles the toast
         const unsubscribe = onForegroundMessage((payload) => {
             console.log("🔥 Firebase foreground message (Toast):", payload);
-            
-            // Show toast for foreground push notifications
+
+            // Get notification ID from Firebase payload
+            const notifId = payload.data?.notificationId;
+
+            // If SSE already showed this, skip
+            if (notifId && shownNotifications.has(notifId)) {
+                console.log('⏭️ SSE already showed this notification, skipping Firebase toast');
+                return;
+            }
+
+            // If SSE didn't show it (edge case), show it from Firebase
+            if (notifId) {
+                shownNotifications.add(notifId);
+            }
+
             const title = payload.notification?.title || 'New Notification';
             const body = payload.notification?.body || '';
-            
+
             toast(title, {
                 description: body,
                 icon: "🔔",
@@ -69,6 +102,7 @@ export default function NotificationToast() {
         });
 
         return () => {
+            clearInterval(cleanupInterval);
             eventSource.close();
             if (typeof unsubscribe === "function") {
                 unsubscribe();
