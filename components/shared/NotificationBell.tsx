@@ -32,19 +32,34 @@ export default function NotificationBell() {
 
     // Fetch notifications
     const fetchNotifications = async () => {
-        if (!user) return;
-
-        setIsLoading(true);
-        const result = await getUserNotifications(user.id, {
-            page: 1,
-            limit: 10,
-        });
-
-        if (result.success) {
-            setNotifications(result.notifications || []);
-            setUnreadCount(result.unreadCount || 0);
+        if (!user) {
+            console.log("❌ NotificationBell: No user found");
+            return;
         }
-        setIsLoading(false);
+
+        console.log("🔔 NotificationBell: Fetching notifications for user:", user.id);
+        setIsLoading(true);
+
+        try {
+            const result = await getUserNotifications(user.id, {
+                page: 1,
+                limit: 10,
+            });
+
+            console.log("📬 NotificationBell: Fetch result:", result);
+
+            if (result.success) {
+                console.log(`✅ Found ${result.notifications?.length || 0} notifications, ${result.unreadCount || 0} unread`);
+                setNotifications(result.notifications || []);
+                setUnreadCount(result.unreadCount || 0);
+            } else {
+                console.error("❌ NotificationBell: Failed to fetch notifications:", result.error);
+            }
+        } catch (error: any) {
+            console.error("❌ NotificationBell: Error fetching notifications:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Check if we should show permission modal
@@ -79,9 +94,15 @@ export default function NotificationBell() {
             console.log('📡 SSE Event received:', data);
 
             if (data.type === 'notification') {
-                // New notification received - refresh immediately
+                // New notification received - ADD IT IMMEDIATELY
                 console.log('🔔 New notification via SSE!', data.notification);
-                fetchNotifications();
+
+                // IMMEDIATE UPDATE: Add notification to state right away
+                setNotifications(prev => [data.notification, ...prev]);
+                setUnreadCount(prev => prev + 1);
+
+                // Then refresh from server to ensure consistency
+                setTimeout(() => fetchNotifications(), 500);
             }
         };
 
@@ -93,7 +114,8 @@ export default function NotificationBell() {
         // Set up Firebase foreground message listener
         const unsubscribe = onForegroundMessage((payload) => {
             console.log("🔥 Firebase foreground message:", payload);
-            // Refresh notifications
+
+            // IMMEDIATE UPDATE: Refresh notifications right away
             fetchNotifications();
         });
 
@@ -224,7 +246,7 @@ export default function NotificationBell() {
                                         }}
                                     >
                                         <div className="flex gap-3">
-                                            <div className="text-2xl flex-shrink-0">
+                                            <div className="text-2xl shrink-0">
                                                 {getNotificationIcon(notification.type)}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -233,7 +255,7 @@ export default function NotificationBell() {
                                                         {notification.title}
                                                     </h4>
                                                     {!notification.isRead && (
-                                                        <div className="h-2 w-2 bg-primary rounded-full flex-shrink-0 mt-1" />
+                                                        <div className="h-2 w-2 bg-primary rounded-full shrink-0 mt-1" />
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">

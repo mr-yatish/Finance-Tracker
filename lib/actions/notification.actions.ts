@@ -314,8 +314,14 @@ export async function createNotification(
 
         // Send push notification if requested and enabled
         if (notificationData.sendPush) {
+            console.log("📱 Push Check: sendPush = true, checking preferences...");
+
             const pushEnabled = preferences?.pushEnabled !== false &&
                 preferences?.categories?.[notificationData.type]?.pushEnabled !== false;
+
+            console.log("📱 Push Check: Global pushEnabled =", preferences?.pushEnabled);
+            console.log("📱 Push Check: Category pushEnabled =", preferences?.categories?.[notificationData.type]?.pushEnabled);
+            console.log("📱 Push Check: Final pushEnabled =", pushEnabled);
 
             if (pushEnabled) {
                 // Get active devices
@@ -324,10 +330,14 @@ export async function createNotification(
                     isActive: true,
                 });
 
+                console.log("📱 Push Check: Found", devices.length, "active device(s)");
+
                 if (devices.length > 0) {
                     const tokens = devices.map((d) => d.fcmToken);
+                    console.log("📱 Push Check: Tokens:", tokens.map(t => t.substring(0, 20) + "..."));
 
                     // Send push notification
+                    console.log("📱 Push Check: Calling sendBatchPushNotification...");
                     const pushResult = await sendBatchPushNotification(tokens, {
                         title: notificationData.title,
                         body: notificationData.message,
@@ -339,14 +349,19 @@ export async function createNotification(
                         },
                     });
 
+                    console.log("📱 Push Result:", JSON.stringify(pushResult, null, 2));
+
                     // Update notification with delivery status
                     if (pushResult.success && pushResult.results) {
                         notification.deliveryLog.pushSent = true;
                         notification.deliveryLog.pushSentAt = new Date();
                         notification.deliveryLog.pushDelivered = pushResult.results.successCount > 0;
 
+                        console.log("✅ Push Delivered:", pushResult.results.successCount, "success,", pushResult.results.failureCount, "failed");
+
                         // Mark invalid tokens as inactive
                         if (pushResult.results.invalidTokens && pushResult.results.invalidTokens.length > 0) {
+                            console.log("⚠️ Marking", pushResult.results.invalidTokens.length, "invalid tokens as inactive");
                             await UserDevice.updateMany(
                                 { fcmToken: { $in: pushResult.results.invalidTokens } },
                                 { isActive: false }
@@ -354,11 +369,18 @@ export async function createNotification(
                         }
                     } else {
                         notification.deliveryLog.pushError = pushResult.message || "Failed to send";
+                        console.error("❌ Push Failed:", pushResult.message);
                     }
 
                     await notification.save();
+                } else {
+                    console.log("⚠️ Push Check: No devices found - push not sent");
                 }
+            } else {
+                console.log("⚠️ Push Check: Push disabled in preferences - not sending");
             }
+        } else {
+            console.log("⚠️ Push Check: sendPush = false - skipping push notification");
         }
 
         revalidatePath("/dashboard");

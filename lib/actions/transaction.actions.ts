@@ -37,22 +37,37 @@ export async function createTransaction(transactionData: any, clerkId: string) {
 
         // 🔔 Send notification
         try {
+            console.log("🔔 Transaction Notification: Starting...");
             const { createNotification } = await import("@/lib/actions/notification.actions");
-            await createNotification(clerkId, {
+
+            const notificationPayload = {
                 title: `${isIncome ? "💰" : "💸"} ${isIncome ? "Income" : "Expense"} Recorded`,
                 message: `₹${transactionData.amount.toLocaleString()} - ${transactionData.category}${transactionData.description ? ": " + transactionData.description : ""}`,
-                type: "transaction",
+                type: "transaction" as const,
                 data: {
                     transactionId: newTransaction._id.toString(),
                     amount: transactionData.amount.toString(),
                     category: transactionData.category,
                 },
                 actionUrl: "/transactions",
-                sendPush: true,
-            });
+                sendPush: true, // ⚠️ Push should be enabled
+            };
+
+            console.log("🔔 Transaction Notification: Payload:", JSON.stringify(notificationPayload, null, 2));
+            console.log("🔔 Transaction Notification: sendPush =", notificationPayload.sendPush);
+
+            const notifResult = await createNotification(clerkId, notificationPayload);
+
+            console.log("🔔 Transaction Notification: Result:", notifResult);
+
+            if (!notifResult.success) {
+                console.error("❌ Transaction Notification: Failed -", notifResult.error);
+            } else {
+                console.log("✅ Transaction Notification: Success - ID:", notifResult.notificationId);
+            }
         } catch (notifError) {
             // Don't fail transaction if notification fails
-            console.error("Notification failed:", notifError);
+            console.error("❌ Transaction Notification: Exception -", notifError);
         }
 
         revalidatePath("/transactions");

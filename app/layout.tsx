@@ -12,6 +12,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import NotificationToast from "@/components/shared/NotificationToast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -140,6 +141,7 @@ export default async function RootLayout({
               disableTransitionOnChange
             >
               <MaintenancePage />
+              <NotificationToast />
               <Toaster />
             </ThemeProvider>
           </body>
@@ -166,6 +168,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <NotificationToast />
             <Toaster />
           </ThemeProvider>
         </body>
