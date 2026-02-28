@@ -139,7 +139,22 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
 
                 <TabsContent value="schedule" className="mt-4">
                     <div className="flex justify-end mb-2">
-                        <AmortizationExportButton schedule={schedule} fileName={`${emi.name.replace(/\s+/g, '_')}_schedule`} />
+                        <AmortizationExportButton
+                            schedule={schedule}
+                            fileName={`${emi.name.replace(/\s+/g, '_')}_schedule`}
+                            nextPaymentDate={emi.nextPaymentDate}
+                            status={emi.status}
+                            emiAmount={emi.emiAmount}
+                            totalAmount={emi.totalAmount}
+                            lender={emi.lender}
+                            loanType={emi.loanType}
+                            loanName={emi.name}
+                            interestRate={emi.interestRate}
+                            tenureMonths={emi.tenureMonths}
+                            paidAmount={emi.totalAmount - emi.remainingAmount}
+                            remainingAmount={emi.remainingAmount}
+                            progress={progress}
+                        />
                     </div>
                     <div className="border rounded-md overflow-x-auto">
                         <Table>
@@ -157,9 +172,17 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
                             </TableHeader>
                             <TableBody>
                                 {schedule.map((row: any) => {
-                                    const isPaid = emi.status === 'closed' || (emi.nextPaymentDate && new Date(row.paymentDate) < new Date(emi.nextPaymentDate));
+                                    const rowDate = new Date(row.paymentDate);
+                                    const nextDate = emi.nextPaymentDate ? new Date(emi.nextPaymentDate) : null;
+
+                                    const rowMonthKey = rowDate.getMonth() + rowDate.getFullYear() * 12;
+                                    const nextMonthKey = nextDate ? nextDate.getMonth() + nextDate.getFullYear() * 12 : -1;
+
+                                    const isPaid = emi.status === 'closed' || (nextMonthKey !== -1 && rowMonthKey < nextMonthKey);
+                                    const isNext = emi.status === 'active' && nextMonthKey !== -1 && rowMonthKey === nextMonthKey;
+
                                     return (
-                                        <TableRow key={row.installmentNumber} className={isPaid ? "bg-green-200/50 hover:bg-green-300/50" : ""}>
+                                        <TableRow key={row.installmentNumber} className={isPaid ? "bg-green-200/50 hover:bg-green-300/50" : isNext ? "bg-amber-100 font-semibold" : ""}>
                                             <TableCell className="whitespace-nowrap">{row.installmentNumber}</TableCell>
                                             <TableCell className="whitespace-nowrap">{format(new Date(row.paymentDate), 'MMM yyyy')}</TableCell>
                                             <TableCell className="text-muted-foreground whitespace-nowrap">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(row.openingBalance)}</TableCell>
