@@ -25,29 +25,57 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
     // Get unique categories for filter dropdown
     const categories = Array.from(new Set(transactions.map((tx) => tx.category)));
 
-    // Filtering Logic
-    const filteredTransactions = transactions.filter((tx) => {
-        const matchesType = filterType === "all" || tx.type === filterType;
-        const matchesCategory = filterCategory === "all" || tx.category === filterCategory;
-        const matchesSearch = searchTerm === "" ||
-            tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            tx.category.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filtering and Balance Logic
+    const filteredTransactionsWithBalance = (() => {
+        // Sort ALL transactions by date ascending (with _id as tie-breaker) for stable balance
+        const sortedAll = [...transactions].sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            if (dateA !== dateB) return dateA - dateB;
+            return a._id.localeCompare(b._id); // Stable tie-breaker
+        });
 
-        let matchesDate = true;
-        const txDate = new Date(tx.date);
+        let runningBalance = 0;
+        const allWithBalance = sortedAll.map(tx => {
+            if (tx.type === 'income') {
+                runningBalance += tx.amount;
+            } else {
+                runningBalance -= tx.amount;
+            }
+            return { ...tx, runningBalance };
+        });
 
-        if (startDate) {
-            matchesDate = matchesDate && txDate >= new Date(startDate);
-        }
-        if (endDate) {
-            // Set end date to end of day
-            const end = new Date(endDate);
-            end.setHours(23, 59, 59, 999);
-            matchesDate = matchesDate && txDate <= end;
-        }
+        // Now filter the ones with balance already attached
+        const filtered = allWithBalance.filter((tx) => {
+            const matchesType = filterType === "all" || tx.type === filterType;
+            const matchesCategory = filterCategory === "all" || tx.category === filterCategory;
+            const matchesSearch = searchTerm === "" ||
+                tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                tx.category.toLowerCase().includes(searchTerm.toLowerCase());
 
-        return matchesType && matchesCategory && matchesSearch && matchesDate;
-    });
+            let matchesDate = true;
+            const txDate = new Date(tx.date);
+
+            if (startDate) {
+                matchesDate = matchesDate && txDate >= new Date(startDate);
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                matchesDate = matchesDate && txDate <= end;
+            }
+
+            return matchesType && matchesCategory && matchesSearch && matchesDate;
+        });
+
+        // Sort back to descending for display (date DESC, then _id DESC)
+        return filtered.sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            if (dateA !== dateB) return dateB - dateA;
+            return b._id.localeCompare(a._id);
+        });
+    })();
 
     const exportPDF = () => {
         const doc = new jsPDF();
@@ -62,24 +90,25 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
             doc.text(`Period: ${startDate || 'Start'} to ${endDate || 'End'}`, 14, 34);
         }
 
-        const tableColumn = ["Date", "Description", "Category", "Type", "Amount", "Method"];
-        const tableRows = filteredTransactions.map((tx) => {
+        const tableColumn = ["Date", "Description", "Category", "Type", "Amount", "Balance", "Method"];
+        const tableRows = filteredTransactionsWithBalance.map((tx) => {
             return [
                 format(new Date(tx.date), "dd/MM/yyyy"),
                 tx.description || "-",
                 tx.category,
                 tx.type.toUpperCase(),
                 `${tx.type === 'income' ? '+' : '-'} ${tx.amount}`,
+                tx.runningBalance.toFixed(2),
                 tx.paymentMethod?.toUpperCase() || "ONLINE"
             ];
         });
 
         // Add Totals
-        const totalIncome = filteredTransactions
+        const totalIncome = filteredTransactionsWithBalance
             .filter(t => t.type === 'income')
             .reduce((acc, curr) => acc + curr.amount, 0);
 
-        const totalExpense = filteredTransactions
+        const totalExpense = filteredTransactionsWithBalance
             .filter(t => t.type === 'expense')
             .reduce((acc, curr) => acc + curr.amount, 0);
 
@@ -89,7 +118,7 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
             head: [tableColumn],
             body: tableRows,
             startY: 40,
-            styles: { fontSize: 9 },
+            styles: { fontSize: 8 },
             headStyles: { fillColor: [22, 163, 74] }, // Greenish header
         });
 
@@ -182,12 +211,12 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base font-semibold">Transaction History</CardTitle>
                         <div className="text-sm text-muted-foreground">
-                            {filteredTransactions.length} records
+                            {filteredTransactionsWithBalance.length} records
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    {filteredTransactions.length === 0 ? (
+                    {filteredTransactionsWithBalance.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
                             <div className="bg-muted/50 p-4 rounded-full mb-3">
                                 <Search className="h-6 w-6 opacity-40" />
@@ -197,9 +226,15 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
                         </div>
                     ) : (
                         <div className="divide-y">
-                            {filteredTransactions.map((tx: any) => (
+                            {/* Table Header for Column Labels */}
+                            <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-muted/20 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                <div className="col-span-6">Transaction Details</div>
+                                <div className="col-span-3 text-right">Amount</div>
+                                <div className="col-span-3 text-right pr-8">Balance</div>
+                            </div>
+                            {filteredTransactionsWithBalance.map((tx: any) => (
                                 <div key={tx._id} className="p-4 hover:bg-muted/50 transition-colors">
-                                    <TransactionItem transaction={tx} />
+                                    <TransactionItem transaction={tx} balance={tx.runningBalance} />
                                 </div>
                             ))}
                         </div>
@@ -207,5 +242,6 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
                 </CardContent>
             </Card>
         </div>
+
     );
 };

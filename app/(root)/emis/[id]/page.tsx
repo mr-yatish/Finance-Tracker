@@ -98,14 +98,28 @@ export default async function EmiDetailsPage(props: { params: Promise<{ id: stri
                                 <AlertOctagon className="h-5 w-5 text-amber-500 shrink-0" />
                                 <div>
                                     <p className="font-medium text-sm whitespace-nowrap">Next Payment Due</p>
-                                    <p className="text-xs text-muted-foreground">{format(new Date(emi.nextPaymentDate), 'PPP')}</p>
+                                    <p className="text-xs text-muted-foreground">{format(new Date(emi.nextPaymentDate), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') ? 'Today' : format(new Date(emi.nextPaymentDate), 'PPP')}</p>
+
                                 </div>
                             </div>
                             <div className="w-full sm:w-auto sm:ml-auto">
-                                <EmiPaymentModal emi={JSON.parse(JSON.stringify(emi))} />
+                                {(() => {
+                                    const nextDate = new Date(emi.nextPaymentDate);
+                                    const nextMonthKey = nextDate.getMonth() + nextDate.getFullYear() * 12;
+                                    const scheduleRow = schedule.find((row: any) => {
+                                        const rowDate = new Date(row.paymentDate);
+                                        const rowMonthKey = rowDate.getMonth() + rowDate.getFullYear() * 12;
+                                        return rowMonthKey === nextMonthKey;
+                                    });
+                                    return <EmiPaymentModal
+                                        emi={JSON.parse(JSON.stringify(emi))}
+                                        suggestedAmount={scheduleRow?.emi}
+                                    />;
+                                })()}
                             </div>
                         </div>
                     )}
+
                 </div>
 
                 {/* Timeline / History Mini View */}

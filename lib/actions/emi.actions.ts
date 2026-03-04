@@ -1,7 +1,9 @@
 'use server'
 
 import { revalidatePath } from "next/cache";
+import { addMonths } from "date-fns";
 import { connectToDatabase } from "../database/mongoose";
+
 import Emi from "../database/models/emi.model";
 import User from "../database/models/user.model";
 import Transaction from "../database/models/transaction.model"; // Import Transaction
@@ -183,10 +185,10 @@ export async function getAmortizationSchedule(emiId: string) {
 
             if (balance < 0) balance = 0;
 
-            const paymentDate = new Date(startDate);
-            paymentDate.setMonth(startDate.getMonth() + i);
+            const paymentDate = addMonths(startDate, i);
 
             schedule.push({
+
                 installmentNumber: i,
                 paymentDate: paymentDate,
                 openingBalance: Math.round(balance + principalPart),
@@ -230,16 +232,23 @@ export async function recordEmiPayment({
 
         let interestComponent = 0;
         let principalComponent = 0;
+        let gstComponent = 0;
 
         if (isPrepayment) {
             interestComponent = 0;
+            gstComponent = 0;
             principalComponent = amount;
         } else {
+            // Calculate interest on remaining principal
             interestComponent = Math.round(emi.remainingAmount * monthlyRate);
-            principalComponent = amount - interestComponent;
+            // Calculate GST on that interest
+            gstComponent = Math.round(interestComponent * ((emi.gstRate || 0) / 100));
+            // Principal is the rest of the payment
+            principalComponent = amount - interestComponent - gstComponent;
         }
 
         let newRemaining = emi.remainingAmount - principalComponent;
+
         if (newRemaining < 0) newRemaining = 0;
 
         await Transaction.create({
@@ -259,8 +268,10 @@ export async function recordEmiPayment({
             amount: amount,
             type: isPrepayment ? 'prepayment' : 'regular',
             interestComponent,
+            gstComponent,
             principalComponent
         };
+
 
         let status = emi.status;
         if (newRemaining <= 0) {
@@ -291,18 +302,23 @@ export async function recordEmiPayment({
 }
 
 // WRAPPERS for Frontend Convenience
-export async function processEmiPayment(emiId: string) {
+export async function processEmiPayment(emiId: string, amount?: number) {
     const emi = await Emi.findById(emiId);
     if (!emi) throw new Error("EMI not found");
 
+    // If amount is not provided, we fallback to base emiAmount (which is without GST/Interest usually)
+    // But ideally we want the UI to pass the correct amount from schedule
+    const finalAmount = amount || emi.emiAmount;
+
     return await recordEmiPayment({
         emiId,
-        amount: emi.emiAmount,
+        amount: finalAmount,
         date: new Date(),
         isPrepayment: false,
         path: `/emis/${emiId}`
     });
 }
+
 
 export async function prepayEmi({ emiId, amount, path }: { emiId: string, amount: number, path: string }) {
     return await recordEmiPayment({

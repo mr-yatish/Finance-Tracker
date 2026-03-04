@@ -24,9 +24,10 @@ import { useRouter } from "next/navigation"
 
 interface TransactionItemProps {
     transaction: any;
+    balance?: number;
 }
 
-export function TransactionItem({ transaction }: TransactionItemProps) {
+export function TransactionItem({ transaction, balance }: TransactionItemProps) {
     const { user } = useUser();
     const router = useRouter();
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -41,13 +42,13 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
     };
 
     return (
-        <div className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 group">
-            <div className="flex flex-col">
-                <span className="font-medium">{transaction.description || transaction.category}</span>
-                <span className="text-xs text-muted-foreground">
+        <div className="grid grid-cols-12 items-center gap-4 group">
+            <div className="col-span-6 flex flex-col min-w-0">
+                <span className="font-medium truncate">{transaction.description || transaction.category}</span>
+                <span className="text-xs text-muted-foreground truncate">
                     {format(new Date(transaction.date), "PPP")}
                     {transaction.type === 'expense' && (
-                        <span className="ml-2">
+                        <span className="ml-1 hidden sm:inline">
                             • {transaction.paymentMethod === 'cash' ? 'Cash' : (
                                 transaction.bankAccount?.bank?.name ? `${transaction.bankAccount.bank.name} (*${transaction.bankAccount.last4Digits})` : 'Online'
                             )}
@@ -55,13 +56,23 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
                     )}
                 </span>
             </div>
-            <div className="flex items-center gap-4">
-                <div className={`font-bold ${transaction.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                    {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toFixed(2)}
+
+            <div className="col-span-3 text-right">
+                <div className={`font-bold text-sm sm:text-base ${transaction.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
+            </div>
+
+            <div className="col-span-3 flex items-center justify-end gap-2">
+                {balance !== undefined && (
+                    <div className="font-medium text-xs sm:text-sm text-muted-foreground mr-1 sm:mr-4">
+                        ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </div>
+                )}
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Actions</span>
                         </Button>
@@ -76,6 +87,7 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
+
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">

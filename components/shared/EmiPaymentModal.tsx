@@ -34,7 +34,7 @@ const paymentSchema = z.object({
     date: z.date().optional(), // In a real app we might let user pick date, here we default to now for logic simplicity
 })
 
-export function EmiPaymentModal({ emi }: { emi: any }) {
+export function EmiPaymentModal({ emi, suggestedAmount }: { emi: any, suggestedAmount?: number }) {
     const [open, setOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
@@ -43,23 +43,24 @@ export function EmiPaymentModal({ emi }: { emi: any }) {
         resolver: zodResolver(paymentSchema) as any,
         defaultValues: {
             type: "regular",
-            amount: emi.emiAmount,
+            amount: suggestedAmount || emi.emiAmount,
         }
     })
 
     // Update amount when type changes
     const type = form.watch("type");
-    if (type === "regular" && form.getValues("amount") !== emi.emiAmount) {
-        form.setValue("amount", emi.emiAmount);
+    if (type === "regular" && form.getValues("amount") !== (suggestedAmount || emi.emiAmount)) {
+        form.setValue("amount", (suggestedAmount || emi.emiAmount));
     }
 
     async function onSubmit(data: z.infer<typeof paymentSchema>) {
         setIsSubmitting(true);
         try {
             if (data.type === "regular") {
-                await processEmiPayment(emi._id);
+                await processEmiPayment(emi._id, data.amount);
                 toast.success("EMI Payment recorded successfully");
             } else {
+
                 await prepayEmi({
                     emiId: emi._id,
                     amount: data.amount,

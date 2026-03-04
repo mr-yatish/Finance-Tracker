@@ -28,7 +28,9 @@ const EmiSchema = new Schema({
         amount: { type: Number, required: true },
         type: { type: String, enum: ['regular', 'prepayment'], default: 'regular' },
         interestComponent: { type: Number },
+        gstComponent: { type: Number },
         principalComponent: { type: Number }
+
     }]
 }, { timestamps: true });
 
